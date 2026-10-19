@@ -8,13 +8,14 @@ import { PrinterLoader } from '../components/PrinterLoader';
 import { initBusinessSocket, disconnectSocket } from '../lib/socket';
 import { useBusinessStore } from '../lib/store';
 import { api, getAuthToken, removeAuthToken } from '../lib/api';
+import { Printer, Sun, Moon } from 'lucide-react';
 
 export default function BusinessLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { setBusiness, setConnected, addJob, updateJob, isDND, theme, setTheme } = useBusinessStore();
+  const { setBusiness, setConnected, addJob, updateJob, isDND, theme, setTheme, toggleTheme } = useBusinessStore();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -132,6 +133,7 @@ export default function BusinessLayout({
     <html lang="en" data-theme={theme} suppressHydrationWarning>
       <head>
         <title>PrintHub Business Control Center</title>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -151,34 +153,56 @@ export default function BusinessLayout({
       </head>
       <body>
         {isCheckingAuth ? (
-          <PrinterLoader
-            message="Initializing workspace & checking session..."
-            submessage="Connecting to Windows spooler & PrintHub gateway"
-          />
+          <PrinterLoader />
         ) : !isAuthenticated ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px' }}>
-            <div className="biz-card" style={{ maxWidth: '420px', width: '100%', padding: '32px' }}>
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px', background: 'var(--bg-app)' }}>
+            <div className="biz-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 32px', position: 'relative' }}>
+              {/* Theme Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+                style={{
+                  position: 'absolute',
+                  top: '18px',
+                  right: '18px',
+                  background: 'var(--btn-secondary-bg)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '10px',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div
                   style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '14px',
-                    background: '#6366f1',
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '16px',
+                    background: 'var(--accent-indigo)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '0 auto 12px auto',
-                    boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
-                    fontSize: '1.5rem',
+                    margin: '0 auto 14px auto',
+                    boxShadow: '0 8px 24px var(--accent-indigo-glow)',
+                    color: '#ffffff',
                   }}
                 >
-                  🖨️
+                  <Printer size={26} />
                 </div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '4px', color: '#ffffff' }}>
+                <h2 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                   PrintHub Business
                 </h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.45 }}>
                   {authMode === 'signup'
                     ? 'Register your print/photocopy cafe to get your QR code'
                     : 'Sign in to manage printers, live requests, and prices'}
@@ -189,11 +213,11 @@ export default function BusinessLayout({
               <div
                 style={{
                   display: 'flex',
-                  background: 'rgba(0,0,0,0.4)',
+                  background: 'var(--btn-secondary-bg)',
                   borderRadius: '12px',
                   padding: '4px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  marginBottom: '20px',
+                  border: '1px solid var(--border-subtle)',
+                  marginBottom: '22px',
                 }}
               >
                 <button
@@ -204,15 +228,16 @@ export default function BusinessLayout({
                   }}
                   style={{
                     flex: 1,
-                    padding: '8px 12px',
+                    padding: '9px 12px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: authMode === 'login' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                    color: authMode === 'login' ? '#ffffff' : '#94a3b8',
-                    fontWeight: 600,
+                    background: authMode === 'login' ? 'var(--accent-indigo)' : 'transparent',
+                    color: authMode === 'login' ? '#ffffff' : 'var(--text-secondary)',
+                    fontWeight: 700,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     fontSize: '0.88rem',
+                    boxShadow: authMode === 'login' ? '0 2px 8px var(--accent-indigo-glow)' : 'none',
                   }}
                 >
                   Sign In
@@ -225,15 +250,16 @@ export default function BusinessLayout({
                   }}
                   style={{
                     flex: 1,
-                    padding: '8px 12px',
+                    padding: '9px 12px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: authMode === 'signup' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                    color: authMode === 'signup' ? '#ffffff' : '#94a3b8',
-                    fontWeight: 600,
+                    background: authMode === 'signup' ? 'var(--accent-indigo)' : 'transparent',
+                    color: authMode === 'signup' ? '#ffffff' : 'var(--text-secondary)',
+                    fontWeight: 700,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     fontSize: '0.88rem',
+                    boxShadow: authMode === 'signup' ? '0 2px 8px var(--accent-indigo-glow)' : 'none',
                   }}
                 >
                   Register New Cafe
@@ -243,11 +269,12 @@ export default function BusinessLayout({
               {authError && (
                 <div
                   style={{
-                    padding: '10px 14px',
-                    background: 'rgba(244, 63, 94, 0.15)',
+                    padding: '12px 14px',
+                    background: 'rgba(244, 63, 94, 0.12)',
                     border: '1px solid rgba(244, 63, 94, 0.3)',
-                    color: '#fca5a5',
-                    fontSize: '0.84rem',
+                    color: 'var(--accent-rose)',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
                     borderRadius: '10px',
                     marginBottom: '18px',
                   }}
@@ -256,10 +283,10 @@ export default function BusinessLayout({
                 </div>
               )}
 
-              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {authMode === 'signup' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
                       Shop / Cafe Name *
                     </label>
                     <input
@@ -268,21 +295,22 @@ export default function BusinessLayout({
                       placeholder="e.g. Mayank Xerox & Prints"
                       value={shopName}
                       onChange={(e) => setShopName(e.target.value)}
+                      className="biz-input"
                       style={{
                         width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        background: 'rgba(0,0,0,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#ffffff',
-                        fontSize: '0.9rem',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.92rem',
                       }}
                     />
                   </div>
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
                     Email Address *
                   </label>
                   <input
@@ -291,20 +319,21 @@ export default function BusinessLayout({
                     placeholder="cafe@domain.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="biz-input"
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      background: 'rgba(0,0,0,0.4)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#ffffff',
-                      fontSize: '0.9rem',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.92rem',
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
                     Password (min 8 characters) *
                   </label>
                   <input
@@ -314,14 +343,15 @@ export default function BusinessLayout({
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="biz-input"
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      background: 'rgba(0,0,0,0.4)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#ffffff',
-                      fontSize: '0.9rem',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.92rem',
                     }}
                   />
                 </div>
@@ -330,17 +360,17 @@ export default function BusinessLayout({
                   type="submit"
                   disabled={isSubmitting}
                   className="biz-btn-primary"
-                  style={{ marginTop: '8px', padding: '12px', fontSize: '0.95rem' }}
+                  style={{ marginTop: '8px', padding: '14px', fontSize: '0.98rem' }}
                 >
                   {isSubmitting
                     ? 'Processing...'
                     : authMode === 'signup'
-                    ? 'Create Cafe & Launch Agent'
-                    : 'Sign In to Desktop Agent'}
+                    ? 'Create Cafe & Launch'
+                    : 'Sign In to Dashboard'}
                 </button>
               </form>
 
-              <div style={{ textAlign: 'center', marginTop: '18px', fontSize: '0.82rem', color: '#64748b' }}>
+              <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
                 {authMode === 'login' ? (
                   <span>
                     New print cafe?{' '}
@@ -350,7 +380,7 @@ export default function BusinessLayout({
                         setAuthMode('signup');
                         setAuthError(null);
                       }}
-                      style={{ background: 'transparent', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--accent-indigo)', fontWeight: 700, cursor: 'pointer' }}
                     >
                       Register here
                     </button>
@@ -364,7 +394,7 @@ export default function BusinessLayout({
                         setAuthMode('login');
                         setAuthError(null);
                       }}
-                      style={{ background: 'transparent', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--accent-indigo)', fontWeight: 700, cursor: 'pointer' }}
                     >
                       Sign in here
                     </button>

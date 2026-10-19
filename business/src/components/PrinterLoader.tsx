@@ -2,12 +2,10 @@ import React from 'react';
 
 interface PrinterLoaderProps {
   message?: string;
-  submessage?: string;
 }
 
 export const PrinterLoader: React.FC<PrinterLoaderProps> = ({
-  message = 'Connecting to PrintHub...',
-  submessage = 'Verifying workspace & security credentials',
+  message,
 }) => {
   return (
     <div
@@ -301,44 +299,33 @@ export const PrinterLoader: React.FC<PrinterLoaderProps> = ({
         />
       </div>
 
-      {/* Typography & Status Indicator */}
-      <div style={{ textAlign: 'center', marginTop: '22px' }}>
+      {/* Brand Title & Subtle Animated Dots */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <h2
           style={{
-            fontSize: '1.25rem',
+            fontSize: '1.2rem',
             fontWeight: 800,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
-            marginBottom: '6px',
+            marginBottom: message ? '6px' : '0',
           }}
         >
           PrintHub Business
         </h2>
-        <div
-          style={{
-            fontSize: '0.85rem',
-            color: 'var(--text-secondary)',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>{message}</span>
-        </div>
-        <div
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--text-tertiary)',
-            marginTop: '4px',
-          }}
-        >
-          {submessage}
-        </div>
+        {message && (
+          <div
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--text-secondary)',
+              fontWeight: 500,
+            }}
+          >
+            {message}
+          </div>
+        )}
 
-        {/* Three Animated Status Dots */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
+        {/* Three Subtle Pulsing Dots */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-indigo)', display: 'inline-block', animation: 'dotPulse 1.2s infinite ease-in-out', animationDelay: '0s' }} />
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-indigo)', display: 'inline-block', animation: 'dotPulse 1.2s infinite ease-in-out', animationDelay: '0.2s' }} />
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-indigo)', display: 'inline-block', animation: 'dotPulse 1.2s infinite ease-in-out', animationDelay: '0.4s' }} />
