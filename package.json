@@ -1,0 +1,17 @@
+{
+  "name": "printhub-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QR Print Platform Monorepo",
+  "scripts": {
+    "build": "pnpm --recursive run build",
+    "test": "pnpm --recursive run test",
+    "dev:backend": "pnpm --filter @printhub/backend dev",
+    "dev:customer": "pnpm --filter @printhub/customer dev",
+    "dev:business": "pnpm --filter @printhub/business dev",
+    "clean": "pnpm --recursive run clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
