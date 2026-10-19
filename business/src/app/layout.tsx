@@ -15,9 +15,12 @@ export default function BusinessLayout({
 }) {
   const { setBusiness, setConnected, addJob, updateJob, isDND } = useBusinessStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [email, setEmail] = useState('shop@printhub.local');
-  const [password, setPassword] = useState('Password123!');
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [shopName, setShopName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -70,16 +73,26 @@ export default function BusinessLayout({
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setIsSubmitting(true);
     try {
-      await api.login(email, password);
+      if (authMode === 'signup') {
+        if (!shopName.trim()) {
+          throw new Error('Please enter your shop or cafe name.');
+        }
+        await api.signup(email.trim(), password, shopName.trim());
+      } else {
+        await api.login(email.trim(), password);
+      }
       setIsAuthenticated(true);
-      fetchProfile();
+      await fetchProfile();
       setupSocket();
     } catch (err: any) {
-      setAuthError(err.message || 'Login failed');
+      setAuthError(err.message || (authMode === 'signup' ? 'Registration failed' : 'Login failed'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -88,49 +101,220 @@ export default function BusinessLayout({
       <html lang="en">
         <body>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px' }}>
-            <div className="biz-card" style={{ maxWidth: '400px', width: '100%', padding: '32px' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px' }}>PrintHub Business</h2>
-              <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '24px' }}>
-                Sign in to manage printers, pricing, and live print requests.
-              </p>
+            <div className="biz-card" style={{ maxWidth: '420px', width: '100%', padding: '32px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px auto',
+                    boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                    fontSize: '1.5rem',
+                  }}
+                >
+                  🖨️
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '4px', color: '#ffffff' }}>
+                  PrintHub Business
+                </h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                  {authMode === 'signup'
+                    ? 'Register your print/photocopy cafe to get your QR code'
+                    : 'Sign in to manage printers, live requests, and prices'}
+                </p>
+              </div>
+
+              {/* Mode Toggle Switch */}
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'rgba(0,0,0,0.4)',
+                  borderRadius: '12px',
+                  padding: '4px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  marginBottom: '20px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthError(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: authMode === 'login' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                    color: authMode === 'login' ? '#ffffff' : '#94a3b8',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    fontSize: '0.88rem',
+                  }}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setAuthError(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: authMode === 'signup' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                    color: authMode === 'signup' ? '#ffffff' : '#94a3b8',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    fontSize: '0.88rem',
+                  }}
+                >
+                  Register New Cafe
+                </button>
+              </div>
 
               {authError && (
-                <div style={{ padding: '10px 12px', background: 'rgba(244, 63, 94, 0.15)', color: '#fca5a5', fontSize: '0.82rem', borderRadius: '8px', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    background: 'rgba(244, 63, 94, 0.15)',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    color: '#fca5a5',
+                    fontSize: '0.84rem',
+                    borderRadius: '10px',
+                    marginBottom: '18px',
+                  }}
+                >
                   {authError}
                 </div>
               )}
 
-              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {authMode === 'signup' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                      Shop / Cafe Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Mayank Xerox & Prints"
+                      value={shopName}
+                      onChange={(e) => setShopName(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        background: 'rgba(0,0,0,0.4)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#ffffff',
+                        fontSize: '0.9rem',
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
-                    Email Address
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                    Email Address *
                   </label>
                   <input
                     type="email"
                     required
+                    placeholder="cafe@domain.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                    }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
-                    Password
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                    Password (min 8 characters) *
                   </label>
                   <input
                     type="password"
                     required
+                    minLength={8}
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                    }}
                   />
                 </div>
 
-                <button type="submit" className="biz-btn-primary" style={{ marginTop: '8px', padding: '12px' }}>
-                  Sign In to Desktop Agent
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="biz-btn-primary"
+                  style={{ marginTop: '8px', padding: '12px', fontSize: '0.95rem' }}
+                >
+                  {isSubmitting
+                    ? 'Processing...'
+                    : authMode === 'signup'
+                    ? 'Create Cafe & Launch Agent'
+                    : 'Sign In to Desktop Agent'}
                 </button>
               </form>
+
+              <div style={{ textAlign: 'center', marginTop: '18px', fontSize: '0.82rem', color: '#64748b' }}>
+                {authMode === 'login' ? (
+                  <span>
+                    New print cafe?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('signup');
+                        setAuthError(null);
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Register here
+                    </button>
+                  </span>
+                ) : (
+                  <span>
+                    Already registered?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('login');
+                        setAuthError(null);
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Sign in here
+                    </button>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </body>
