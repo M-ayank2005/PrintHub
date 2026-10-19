@@ -9,9 +9,10 @@ import { purgeService } from './services/purge.service';
 async function startServer(): Promise<void> {
   try {
     // 1. Connect to MongoDB
-    logger.info({ uri: config.mongoUri }, 'Connecting to MongoDB...');
+    const sanitizedUri = config.mongoUri.replace(/:([^:@]+)@/, ':****@');
+    logger.info({ uri: sanitizedUri }, 'Connecting to MongoDB Atlas...');
     await mongoose.connect(config.mongoUri);
-    logger.info('MongoDB connected successfully');
+    logger.info('MongoDB Atlas connected successfully');
 
     // 2. Initialize Express app and HTTP server
     const app = createApp();

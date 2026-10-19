@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '4000', 10),
-  mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/printhub',
+  mongoUri: process.env.MONGODB_URI || '',
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'printhub_super_secret_access_key_change_in_prod_123!',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'printhub_super_secret_refresh_key_change_in_prod_456!',
