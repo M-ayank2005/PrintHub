@@ -9,6 +9,20 @@ export default function RequestsPage() {
   const { pendingJobs, updateJob, business, setBusiness } = useBusinessStore();
   const [busyState, setBusyState] = useState<string | null>(null);
 
+  const [isTogglingPause, setIsTogglingPause] = useState(false);
+  const [toggleFeedback, setToggleFeedback] = useState<string | null>(null);
+
+  // Ensure business profile is loaded even on direct page visit
+  React.useEffect(() => {
+    if (!business) {
+      api.getProfile()
+        .then((res) => {
+          if (res?.business) setBusiness(res.business);
+        })
+        .catch((err) => console.error('Failed to load profile in requests page:', err));
+    }
+  }, [business, setBusiness]);
+
   const handleAccept = async (jobId: string) => {
     try {
       setBusyState(jobId);
@@ -50,13 +64,28 @@ export default function RequestsPage() {
   };
 
   const handleTogglePause = async () => {
-    if (!business) return;
+    if (isTogglingPause) return;
+    setIsTogglingPause(true);
+    setToggleFeedback(null);
     try {
-      const nextPaused = !business.acceptPaused;
+      const currentPaused = !!business?.acceptPaused;
+      const nextPaused = !currentPaused;
       const res = await api.updateProfile({ acceptPaused: nextPaused });
-      setBusiness(res.business);
+      if (res?.business) {
+        setBusiness(res.business);
+      } else {
+        setBusiness({ ...business, acceptPaused: nextPaused });
+      }
+      setToggleFeedback(
+        nextPaused
+          ? 'Queue Paused: New customer submissions are temporarily paused.'
+          : 'Queue Resumed: Now accepting live print requests!'
+      );
+      setTimeout(() => setToggleFeedback(null), 4000);
     } catch (err: any) {
       alert(err.message || 'Failed to toggle pause status');
+    } finally {
+      setIsTogglingPause(false);
     }
   };
 
@@ -64,26 +93,162 @@ export default function RequestsPage() {
 
   return (
     <div>
-      {/* Header with Pause Switch */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      {/* Header with Compact Pause Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Incoming Print Requests
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
             Live print queue from customer QR scans. One click to accept and print silently.
           </p>
         </div>
 
-        <button
-          onClick={handleTogglePause}
-          className={isPaused ? 'biz-btn-success' : 'biz-btn-danger'}
-          style={{ padding: '12px 20px' }}
-        >
-          {isPaused ? <PlayCircle size={18} /> : <PauseCircle size={18} />}
-          {isPaused ? 'Resume Incoming Requests' : 'Pause Requests (Shop Busy)'}
-        </button>
+        {/* Small Toggle Switch */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={handleTogglePause}
+            disabled={isTogglingPause}
+            role="switch"
+            aria-checked={!isPaused}
+            title={isPaused ? 'Click to resume accepting incoming print requests' : 'Click to pause incoming requests when shop is busy'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '6px 14px 6px 12px',
+              borderRadius: '9999px',
+              background: 'var(--bg-card)',
+              border: isPaused ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid var(--border-subtle)',
+              cursor: isTogglingPause ? 'wait' : 'pointer',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: isPaused ? '0 2px 8px rgba(244, 63, 94, 0.12)' : 'var(--shadow-card)',
+              opacity: isTogglingPause ? 0.7 : 1,
+            }}
+          >
+            {/* Pulsing Status Dot */}
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: isPaused ? '#f43f5e' : '#10b981',
+                boxShadow: isPaused
+                  ? '0 0 0 3px rgba(244, 63, 94, 0.2)'
+                  : '0 0 0 3px rgba(16, 185, 129, 0.25)',
+                transition: 'all 0.2s ease',
+              }}
+            />
+
+            {/* Status Label */}
+            <span
+              style={{
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: isPaused ? '#f43f5e' : 'var(--text-primary)',
+                letterSpacing: '-0.01em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isPaused ? 'Queue Paused (Busy)' : 'Accepting Requests'}
+            </span>
+
+            {/* Slider Track and Thumb */}
+            <div
+              style={{
+                width: '36px',
+                height: '20px',
+                borderRadius: '10px',
+                background: isPaused ? '#64748b' : '#10b981',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'background-color 0.2s ease',
+                position: 'relative',
+              }}
+            >
+              <div
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  background: '#ffffff',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.25)',
+                  transform: isPaused ? 'translateX(0px)' : 'translateX(16px)',
+                  transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+            </div>
+          </button>
+        </div>
       </div>
+
+      {/* Real-time Toggle Feedback */}
+      {toggleFeedback && (
+        <div
+          style={{
+            padding: '10px 16px',
+            borderRadius: '12px',
+            background: isPaused ? 'rgba(244, 63, 94, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+            border: isPaused ? '1px solid rgba(244, 63, 94, 0.28)' : '1px solid rgba(16, 185, 129, 0.28)',
+            color: isPaused ? '#f43f5e' : '#10b981',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <CheckCircle2 size={16} />
+          {toggleFeedback}
+        </div>
+      )}
+
+      {/* Paused Warning Banner */}
+      {isPaused && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 18px',
+            borderRadius: '12px',
+            background: 'rgba(244, 63, 94, 0.08)',
+            border: '1px solid rgba(244, 63, 94, 0.25)',
+            marginBottom: '20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1rem' }}>⏸</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+              Queue is currently paused. Customers scanning your QR poster are notified that the shop is temporarily busy.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleTogglePause}
+            disabled={isTogglingPause}
+            style={{
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: '#10b981',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              whiteSpace: 'nowrap',
+              marginLeft: '12px',
+            }}
+          >
+            Resume Queue
+          </button>
+        </div>
+      )}
 
       {/* Requests List */}
       {pendingJobs.length === 0 ? (
@@ -129,7 +294,7 @@ export default function RequestsPage() {
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <strong style={{ fontSize: '1.1rem', color: '#ffffff' }}>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                         {job.customerName}
                       </strong>
                       <span

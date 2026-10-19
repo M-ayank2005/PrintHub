@@ -3,7 +3,7 @@
 import React from 'react';
 import { useCustomerStore } from '../lib/store';
 import { translations } from '../lib/i18n';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 interface PricingFooterProps {
@@ -31,17 +31,17 @@ export const PricingFooter: React.FC<PricingFooterProps> = ({ slug }) => {
         }}
       >
         <div>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block' }}>
             {t.totalEstimated}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669', letterSpacing: '-0.02em' }}>
               ₹{priceRupees}
             </span>
-            {isQuoting && <Loader2 size={16} className="animate-spin" color="#818cf8" />}
+            {isQuoting && <Loader2 size={16} className="animate-spin" color="#4f46e5" />}
           </div>
           {totals && (
-            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
               {totals.sheets} {totals.sheets === 1 ? 'sheet' : 'sheets'} ({totals.bwSheets} B&W, {totals.colorSheets} Color)
             </span>
           )}
@@ -50,7 +50,7 @@ export const PricingFooter: React.FC<PricingFooterProps> = ({ slug }) => {
         <Link
           href={`/p/${slug}/checkout`}
           className="btn-primary"
-          style={{ padding: '12px 20px', fontSize: '0.95rem' }}
+          style={{ padding: '12px 22px', fontSize: '0.98rem' }}
         >
           <span>{t.continueToCheckout}</span>
           <ArrowRight size={18} />

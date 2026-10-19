@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Copy,
   Check,
+  Sparkles,
 } from 'lucide-react';
 
 export default function JobStatusPage() {
@@ -46,8 +47,8 @@ export default function JobStatusPage() {
           // If status transitioned to PRINTED, fire confetti!
           if (data.status === 'PRINTED' && job?.status !== 'PRINTED') {
             confetti({
-              particleCount: 80,
-              spread: 60,
+              particleCount: 90,
+              spread: 70,
               origin: { y: 0.6 },
             });
           }
@@ -119,19 +120,19 @@ export default function JobStatusPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', paddingTop: '80px', color: '#94a3b8' }}>
-        <div className="pulse-online" style={{ margin: '0 auto 16px auto', width: '14px', height: '14px' }} />
-        <p style={{ fontWeight: 600 }}>Tracking your print order...</p>
+      <div style={{ textAlign: 'center', paddingTop: '100px', color: '#64748b' }}>
+        <div className="pulse-online" style={{ margin: '0 auto 16px auto', width: '16px', height: '16px' }} />
+        <p style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>Tracking your print order...</p>
       </div>
     );
   }
 
   if (error || !job) {
     return (
-      <div className="glass-panel" style={{ padding: '32px 20px', textAlign: 'center', marginTop: '40px' }}>
-        <XCircle size={44} color="#f43f5e" style={{ margin: '0 auto 16px auto' }} />
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>Order Not Found</h3>
-        <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{error || 'Unable to locate order.'}</p>
+      <div className="glass-panel" style={{ padding: '36px 20px', textAlign: 'center', marginTop: '40px', maxWidth: '480px', margin: '40px auto 0 auto' }}>
+        <XCircle size={44} color="#e11d48" style={{ margin: '0 auto 16px auto' }} />
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px', color: '#0f172a' }}>Order Not Found</h3>
+        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>{error || 'Unable to locate order.'}</p>
       </div>
     );
   }
@@ -146,147 +147,166 @@ export default function JobStatusPage() {
   const isCancelled = job.status === 'CANCELLED';
 
   return (
-    <div className="animate-fade-in">
-      {/* Pickup Code Card */}
+    <div className="animate-fade-in" style={{ maxWidth: '480px', margin: '0 auto', paddingBottom: '32px' }}>
+      {/* Pickup Code Hero Card */}
       <div
         className="glass-panel"
         style={{
-          padding: '24px',
+          padding: '28px 24px',
           textAlign: 'center',
           marginBottom: '20px',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1))',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
+          background: '#4f46e5',
+          color: '#ffffff',
+          boxShadow: '0 16px 36px rgba(79, 70, 229, 0.35)',
+          border: 'none',
         }}
       >
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.9 }}>
           {t.pickupCode}
         </span>
         <div
           onClick={handleCopyCode}
           style={{
-            fontSize: '3rem',
+            fontSize: '3.6rem',
             fontWeight: 800,
             fontFamily: 'var(--font-mono)',
             letterSpacing: '0.05em',
-            color: '#ffffff',
             margin: '8px 0',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px',
+            gap: '12px',
           }}
         >
           <span>{job.code}</span>
-          {copiedCode ? <Check size={22} color="#10b981" /> : <Copy size={20} color="#94a3b8" />}
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {copiedCode ? <Check size={20} color="#ffffff" /> : <Copy size={18} color="#ffffff" />}
+          </div>
         </div>
-        <p style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
-          Show this code at the counter for pickup
+        <p style={{ fontSize: '0.88rem', opacity: 0.95, fontWeight: 500 }}>
+          Show this code at the counter to collect your prints
         </p>
       </div>
 
       {/* Real-time Order Progress Stepper */}
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px' }}>
-        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px' }}>{t.orderStatusTitle}</h4>
+      <div className="glass-panel" style={{ padding: '22px 20px', marginBottom: '20px' }}>
+        <h4 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '18px', color: '#0f172a' }}>
+          {t.orderStatusTitle}
+        </h4>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Step 1: Submitted */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: isSubmitted ? 1 : 0.6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isSubmitted ? 1 : 0.65 }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
-                background: isSubmitted ? 'rgba(99, 102, 241, 0.2)' : '#1e293b',
+                background: isSubmitted ? 'rgba(79, 70, 229, 0.15)' : '#f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isSubmitted ? '#818cf8' : '#94a3b8',
+                color: isSubmitted ? '#4f46e5' : '#94a3b8',
+                boxShadow: isSubmitted ? '0 0 0 4px rgba(79, 70, 229, 0.1)' : 'none',
               }}
             >
-              <Clock size={16} />
+              <Clock size={18} />
             </div>
             <div>
-              <strong style={{ fontSize: '0.9rem', display: 'block' }}>{t.waitingShop}</strong>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Shopkeeper has received your request</span>
+              <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>{t.waitingShop}</strong>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Shopkeeper has received your request</span>
             </div>
           </div>
 
           {/* Step 2: Accepted */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: isAccepted ? 1 : isPrinted || isPrinting ? 0.6 : 0.3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isAccepted ? 1 : isPrinted || isPrinting ? 0.65 : 0.4 }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
-                background: isAccepted ? 'rgba(6, 182, 212, 0.2)' : '#1e293b',
+                background: isAccepted ? 'rgba(2, 132, 199, 0.15)' : '#f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isAccepted ? '#06b6d4' : '#94a3b8',
+                color: isAccepted ? '#0284c7' : '#94a3b8',
+                boxShadow: isAccepted ? '0 0 0 4px rgba(2, 132, 199, 0.1)' : 'none',
               }}
             >
-              <CheckCircle2 size={16} />
+              <CheckCircle2 size={18} />
             </div>
             <div>
-              <strong style={{ fontSize: '0.9rem', display: 'block' }}>{t.accepted}</strong>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Accepted with one click</span>
+              <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>{t.accepted}</strong>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Accepted with one click</span>
             </div>
           </div>
 
           {/* Step 3: Printing */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: isPrinting ? 1 : isPrinted ? 0.6 : 0.3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isPrinting ? 1 : isPrinted ? 0.65 : 0.4 }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
-                background: isPrinting ? 'rgba(245, 158, 11, 0.2)' : '#1e293b',
+                background: isPrinting ? 'rgba(217, 119, 6, 0.15)' : '#f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isPrinting ? '#f59e0b' : '#94a3b8',
+                color: isPrinting ? '#d97706' : '#94a3b8',
+                boxShadow: isPrinting ? '0 0 0 4px rgba(217, 119, 6, 0.1)' : 'none',
               }}
             >
-              <Printer size={16} />
+              <Printer size={18} />
             </div>
             <div>
-              <strong style={{ fontSize: '0.9rem', display: 'block' }}>{t.printing}</strong>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Spooling sheets directly to printer</span>
+              <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>{t.printing}</strong>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Spooling sheets directly to printer</span>
             </div>
           </div>
 
           {/* Step 4: Ready for Pickup */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: isPrinted ? 1 : 0.3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isPrinted ? 1 : 0.4 }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
-                background: isPrinted ? 'rgba(16, 185, 129, 0.2)' : '#1e293b',
+                background: isPrinted ? 'rgba(5, 150, 105, 0.18)' : '#f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isPrinted ? '#10b981' : '#94a3b8',
+                color: isPrinted ? '#059669' : '#94a3b8',
+                boxShadow: isPrinted ? '0 0 0 6px rgba(5, 150, 105, 0.15)' : 'none',
               }}
             >
-              <ShoppingBag size={16} />
+              <ShoppingBag size={18} />
             </div>
             <div>
-              <strong style={{ fontSize: '0.95rem', color: isPrinted ? '#10b981' : '#ffffff', display: 'block' }}>
+              <strong style={{ fontSize: '0.98rem', color: isPrinted ? '#059669' : '#0f172a', fontWeight: 800, display: 'block' }}>
                 {t.readyForPickup}
               </strong>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Collect your prints at the counter</span>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Collect your printed sheets at the counter</span>
             </div>
           </div>
 
-          {/* Special Terminal States */}
+          {/* Terminal error states */}
           {isRejected && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f43f5e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#e11d48', background: '#fff1f2', padding: '12px 16px', borderRadius: '12px' }}>
               <XCircle size={24} />
               <div>
-                <strong>{t.rejected}</strong>
-                <span style={{ fontSize: '0.75rem', display: 'block', color: '#fca5a5' }}>
+                <strong style={{ fontSize: '0.92rem' }}>{t.rejected}</strong>
+                <span style={{ fontSize: '0.78rem', display: 'block', color: '#9f1239' }}>
                   The shopkeeper was unable to accept this request.
                 </span>
               </div>
@@ -294,11 +314,11 @@ export default function JobStatusPage() {
           )}
 
           {isFailed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#d97706', background: '#fffbeb', padding: '12px 16px', borderRadius: '12px' }}>
               <AlertTriangle size={24} />
               <div>
-                <strong>{t.printerIssue}</strong>
-                <span style={{ fontSize: '0.75rem', display: 'block', color: '#fcd34d' }}>
+                <strong style={{ fontSize: '0.92rem' }}>{t.printerIssue}</strong>
+                <span style={{ fontSize: '0.78rem', display: 'block', color: '#92400e' }}>
                   The printer ran into a paper jam or error. Shop is resolving.
                 </span>
               </div>
@@ -309,33 +329,69 @@ export default function JobStatusPage() {
 
       {/* UPI Payment Section (if chosen) */}
       {job.paymentMode === 'UPI' && (
-        <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', textAlign: 'center' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '8px' }}>
+        <div className="glass-panel" style={{ padding: '24px 20px', marginBottom: '20px', textAlign: 'center' }}>
+          <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px', color: '#0f172a' }}>
             UPI Payment: ₹{(job.totals.pricePaise / 100).toFixed(2)}
           </h4>
+          <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '14px' }}>
+            Scan with Google Pay, PhonePe, Paytm, or BHIM
+          </p>
 
           {qrDataUrl && (
-            <div style={{ display: 'inline-block', padding: '12px', background: '#ffffff', borderRadius: '14px', margin: '12px 0' }}>
-              <img src={qrDataUrl} alt="UPI QR Code" style={{ width: '180px', height: '180px', display: 'block' }} />
+            <div
+              style={{
+                display: 'inline-block',
+                padding: '16px',
+                background: '#ffffff',
+                borderRadius: '20px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+                margin: '8px 0 16px 0',
+              }}
+            >
+              <img src={qrDataUrl} alt="UPI QR Code" style={{ width: '200px', height: '200px', display: 'block' }} />
             </div>
           )}
 
           <div style={{ marginTop: '10px' }}>
             {job.paymentState === 'PAID_CONFIRMED' ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#10b981', fontWeight: 700, fontSize: '0.9rem' }}>
-                <CheckCircle2 size={18} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  color: '#059669',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  background: '#ecfdf5',
+                  padding: '12px',
+                  borderRadius: '12px',
+                }}
+              >
+                <CheckCircle2 size={20} />
                 <span>{t.paymentConfirmed}</span>
               </div>
             ) : job.paymentState === 'CUSTOMER_CLAIMED_PAID' ? (
-              <span style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 600 }}>
-                {t.paymentPending}
-              </span>
+              <div
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: '#fffbeb',
+                  border: '1px solid #fef3c7',
+                  color: '#b45309',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                }}
+              >
+                ⏳ {t.paymentPending}
+              </div>
             ) : (
               <button
                 onClick={handleClaimPayment}
                 disabled={claimingPayment}
-                className="btn-secondary"
-                style={{ width: '100%', padding: '12px' }}
+                className="btn-primary"
+                style={{ width: '100%', padding: '14px' }}
               >
                 {claimingPayment ? 'Updating...' : t.iHavePaidUpi}
               </button>
@@ -352,9 +408,9 @@ export default function JobStatusPage() {
             width: '100%',
             background: 'transparent',
             border: 'none',
-            color: '#f43f5e',
-            fontSize: '0.85rem',
-            fontWeight: 600,
+            color: '#e11d48',
+            fontSize: '0.88rem',
+            fontWeight: 700,
             cursor: 'pointer',
             padding: '12px',
           }}
@@ -364,8 +420,8 @@ export default function JobStatusPage() {
       )}
 
       {/* Privacy Guarantee Note */}
-      <div style={{ marginTop: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', color: '#64748b' }}>
-        <ShieldCheck size={14} color="#10b981" />
+      <div style={{ marginTop: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
+        <ShieldCheck size={16} color="#059669" />
         <span>Your uploaded files are permanently deleted within 30s of print completion.</span>
       </div>
     </div>

@@ -148,13 +148,24 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({ isOpen, onClose, onC
       </div>
 
       {/* Filter Selection Segment */}
-      <div className="segment-container" style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '4px', border: '1px solid rgba(255, 255, 255, 0.2)', gap: '4px', marginBottom: '12px' }}>
         {(['BW', 'GRAYSCALE', 'ORIGINAL'] as const).map((mode) => (
           <button
             key={mode}
             type="button"
-            className={`segment-btn ${filterMode === mode ? 'active' : ''}`}
             onClick={() => setFilterMode(mode)}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              borderRadius: '9px',
+              border: 'none',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              background: filterMode === mode ? '#ffffff' : 'transparent',
+              color: filterMode === mode ? '#4f46e5' : '#e2e8f0',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
           >
             {mode === 'BW' ? 'B&W (High Contrast)' : mode === 'GRAYSCALE' ? 'Grayscale' : 'Color'}
           </button>

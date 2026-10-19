@@ -33,24 +33,24 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
           <div
             style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(99, 102, 241, 0.15)',
+              width: '44px',
+              height: '44px',
+              borderRadius: '14px',
+              background: 'rgba(79, 70, 229, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#818cf8',
+              color: '#4f46e5',
               flexShrink: 0,
             }}
           >
             <IconComponent size={22} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#ffffff' }}>
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#0f172a' }}>
               {doc.name}
             </h4>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
               {doc.pages} {doc.pages === 1 ? 'page' : 'pages'} • {(doc.sizeBytes / (1024 * 1024)).toFixed(2)} MB
             </span>
           </div>
@@ -59,7 +59,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
         <button
           onClick={() => removeDoc(doc.docId)}
           className="stepper-btn"
-          style={{ color: '#f43f5e', borderColor: 'rgba(244, 63, 94, 0.2)' }}
+          style={{ color: '#e11d48', borderColor: '#fecdd3', background: '#fff1f2' }}
           title={t.remove}
         >
           <Trash2 size={16} />
@@ -70,7 +70,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
         {/* Copies Stepper */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             {t.copies}
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -81,7 +81,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
             >
               <Minus size={14} />
             </button>
-            <span style={{ fontSize: '1rem', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>
+            <span style={{ fontSize: '1.05rem', fontWeight: 800, minWidth: '28px', textAlign: 'center', color: '#0f172a' }}>
               {doc.options.copies}
             </span>
             <button
@@ -95,7 +95,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
 
         {/* Paper Size */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             {t.paperSize}
           </label>
           <div className="segment-container">
@@ -123,7 +123,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
         {/* Color Mode */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             {t.colorMode}
           </label>
           <div className="segment-container">
@@ -148,7 +148,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
 
         {/* Sides (Single vs Duplex) */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             {t.sides}
           </label>
           <div className="segment-container">
@@ -176,7 +176,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
         {/* N-up (Pages per sheet) */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             <Layers size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
             {t.pagesPerSheet}
           </label>
@@ -185,13 +185,14 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
             onChange={(e) => handleOptionChange('pagesPerSheet', parseInt(e.target.value, 10))}
             style={{
               width: '100%',
-              padding: '8px 12px',
-              borderRadius: '10px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              fontSize: '0.85rem',
+              padding: '9px 12px',
+              borderRadius: '12px',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#0f172a',
+              fontSize: '0.88rem',
               fontWeight: 600,
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <option value="1">1 page</option>
@@ -204,7 +205,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
 
         {/* Page Range Input */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
             {t.pageRange}
           </label>
           <input
@@ -214,12 +215,14 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
             onChange={(e) => handleOptionChange('pageRange', e.target.value)}
             style={{
               width: '100%',
-              padding: '8px 12px',
-              borderRadius: '10px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              fontSize: '0.85rem',
+              padding: '9px 12px',
+              borderRadius: '12px',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#0f172a',
+              fontSize: '0.88rem',
+              fontWeight: 500,
+              boxShadow: 'var(--shadow-sm)',
             }}
           />
         </div>

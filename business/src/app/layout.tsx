@@ -4,16 +4,18 @@ import React, { useEffect, useState } from 'react';
 import './globals.css';
 import { Sidebar } from '../components/Sidebar';
 import { ToastStack } from '../components/ToastStack';
+import { PrinterLoader } from '../components/PrinterLoader';
 import { initBusinessSocket, disconnectSocket } from '../lib/socket';
 import { useBusinessStore } from '../lib/store';
-import { api, getAuthToken } from '../lib/api';
+import { api, getAuthToken, removeAuthToken } from '../lib/api';
 
 export default function BusinessLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { setBusiness, setConnected, addJob, updateJob, isDND } = useBusinessStore();
+  const { setBusiness, setConnected, addJob, updateJob, isDND, theme, setTheme } = useBusinessStore();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [shopName, setShopName] = useState('');
@@ -23,12 +25,40 @@ export default function BusinessLayout({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // Restore saved theme
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('printhub_biz_theme') as 'dark' | 'light' | null;
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        setTheme(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    }
+
     const token = getAuthToken();
     if (token) {
-      setIsAuthenticated(true);
-      fetchProfile();
-      setupSocket();
+      const startTime = Date.now();
+      fetchProfile()
+        .then(() => {
+          setIsAuthenticated(true);
+          setupSocket();
+        })
+        .catch((err) => {
+          console.warn('Session verification failed, logging out:', err);
+          removeAuthToken();
+          setIsAuthenticated(false);
+        })
+        .finally(() => {
+          const elapsed = Date.now() - startTime;
+          const minDelay = Math.max(0, 700 - elapsed);
+          setTimeout(() => {
+            setIsCheckingAuth(false);
+          }, minDelay);
+        });
+    } else {
+      setIsAuthenticated(false);
+      setIsCheckingAuth(false);
     }
+
     return () => {
       disconnectSocket();
     };
@@ -68,8 +98,10 @@ export default function BusinessLayout({
     try {
       const data = await api.getProfile();
       setBusiness(data.business);
+      return data.business;
     } catch (err) {
       console.error('Failed to fetch profile', err);
+      throw err;
     }
   };
 
@@ -96,10 +128,34 @@ export default function BusinessLayout({
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <html lang="en">
-        <body>
+  return (
+    <html lang="en" data-theme={theme} suppressHydrationWarning>
+      <head>
+        <title>PrintHub Business Control Center</title>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('printhub_biz_theme');
+                  if (saved === 'light' || saved === 'dark') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                  } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body>
+        {isCheckingAuth ? (
+          <PrinterLoader
+            message="Initializing workspace & checking session..."
+            submessage="Connecting to Windows spooler & PrintHub gateway"
+          />
+        ) : !isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px' }}>
             <div className="biz-card" style={{ maxWidth: '420px', width: '100%', padding: '32px' }}>
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -108,7 +164,7 @@ export default function BusinessLayout({
                     width: '48px',
                     height: '48px',
                     borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    background: '#6366f1',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -317,21 +373,15 @@ export default function BusinessLayout({
               </div>
             </div>
           </div>
-        </body>
-      </html>
-    );
-  }
-
-  return (
-    <html lang="en">
-      <body>
-        <div style={{ display: 'flex', minHeight: '100vh', width: '100vw' }}>
-          <Sidebar />
-          <main style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', maxHeight: '100vh' }}>
-            {children}
-          </main>
-          <ToastStack />
-        </div>
+        ) : (
+          <div style={{ display: 'flex', minHeight: '100vh', width: '100vw' }}>
+            <Sidebar />
+            <main style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', maxHeight: '100vh' }}>
+              {children}
+            </main>
+            <ToastStack />
+          </div>
+        )}
       </body>
     </html>
   );

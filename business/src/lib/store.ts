@@ -8,35 +8,59 @@ export interface BusinessStoreState {
   selectedPrinter: string | null;
   isDND: boolean;
   isConnected: boolean;
+  theme: 'dark' | 'light';
 
   setBusiness: (biz: any) => void;
   setConnected: (val: boolean) => void;
   setPrinters: (list: any[]) => void;
   setSelectedPrinter: (name: string) => void;
   toggleDND: () => void;
+  setTheme: (theme: 'dark' | 'light') => void;
+  toggleTheme: () => void;
   addJob: (job: any) => void;
   updateJob: (jobId: string, status: string, paymentState?: string) => void;
   dismissToast: (jobId: string) => void;
 }
 
+const getInitialTheme = (): 'dark' | 'light' => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('printhub_biz_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  }
+  return 'dark';
+};
+
 export const useBusinessStore = create<BusinessStoreState>((set) => ({
   business: null,
   pendingJobs: [],
   toastJobs: [],
-  printers: [
-    { name: 'Microsoft Print to PDF', isOnline: true, isColor: true, isDuplex: true, paperSizes: ['A4', 'A3'] },
-    { name: 'HP LaserJet Pro M404dn', isOnline: true, isColor: false, isDuplex: true, paperSizes: ['A4'] },
-    { name: 'Canon imageCLASS LBP6030w', isOnline: true, isColor: false, isDuplex: false, paperSizes: ['A4'] },
-  ],
-  selectedPrinter: 'Microsoft Print to PDF',
+  printers: [],
+  selectedPrinter: null,
   isDND: false,
   isConnected: false,
+  theme: getInitialTheme(),
 
   setBusiness: (business) => set({ business }),
   setConnected: (isConnected) => set({ isConnected }),
   setPrinters: (printers) => set({ printers }),
   setSelectedPrinter: (selectedPrinter) => set({ selectedPrinter }),
   toggleDND: () => set((state) => ({ isDND: !state.isDND })),
+  setTheme: (theme) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_biz_theme', theme);
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    set({ theme });
+  },
+  toggleTheme: () =>
+    set((state) => {
+      const next = state.theme === 'dark' ? 'light' : 'dark';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_biz_theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+      }
+      return { theme: next };
+    }),
 
   addJob: (job) =>
     set((state) => {

@@ -14,7 +14,7 @@ export default function PricingPage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Active printer capabilities check (F9)
+  // Active printer capabilities check
   const activePrinter = printers.find((p) => p.name === selectedPrinter);
   const canColor = activePrinter ? activePrinter.isColor : true;
   const canDuplex = activePrinter ? activePrinter.isDuplex : true;
@@ -83,10 +83,10 @@ export default function PricingPage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Pricing & Catalog Configuration
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
             Set authoritative rates for customer print orders. Prices are validated server-side and locked as immutable snapshots per job.
           </p>
         </div>
@@ -101,7 +101,7 @@ export default function PricingPage() {
 
       <form onSubmit={handleSave}>
         <div className="biz-card" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '18px' }}>Print Types Rates</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '18px', color: 'var(--text-primary)' }}>Print Types Rates</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {catalogItems.map((item) => {
@@ -117,11 +117,11 @@ export default function PricingPage() {
                   style={{
                     padding: '14px 18px',
                     borderRadius: '12px',
-                    background: isEnabled ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.2)',
+                    background: isEnabled ? 'var(--btn-secondary-bg)' : 'rgba(0, 0, 0, 0.05)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    border: '1px solid var(--border-subtle)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -130,17 +130,17 @@ export default function PricingPage() {
                       checked={isEnabled && !isDisabledByHardware}
                       disabled={isDisabledByHardware}
                       onChange={() => handleToggleEnabled(item.key)}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent-indigo)' }}
                     />
                     <div>
-                      <strong style={{ fontSize: '0.95rem', color: isEnabled ? '#ffffff' : '#94a3b8' }}>
+                      <strong style={{ fontSize: '0.95rem', color: isEnabled ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
                         {item.label}
                       </strong>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                         {item.unit}
                       </span>
                       {isDisabledByHardware && (
-                        <span style={{ fontSize: '0.72rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: 600 }}>
                           <AlertTriangle size={12} />
                           Selected default printer does not support {item.requiresColor ? 'colour' : 'duplex'}
                         </span>
@@ -149,7 +149,7 @@ export default function PricingPage() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>₹</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>₹</span>
                     <input
                       type="number"
                       step="0.5"
@@ -158,14 +158,10 @@ export default function PricingPage() {
                       disabled={!isEnabled || isDisabledByHardware}
                       value={priceRupees}
                       onChange={(e) => handlePriceChange(item.key, parseFloat(e.target.value) || 0)}
+                      className="biz-input"
                       style={{
-                        width: '90px',
+                        width: '95px',
                         padding: '8px 12px',
-                        borderRadius: '8px',
-                        background: 'rgba(0,0,0,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#ffffff',
-                        fontSize: '0.95rem',
                         fontWeight: 700,
                         textAlign: 'right',
                       }}
@@ -179,55 +175,41 @@ export default function PricingPage() {
 
         {/* Extras & Thresholds */}
         <div className="biz-card" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '18px' }}>Extras & Minimum Orders</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '18px', color: 'var(--text-primary)' }}>Extras & Minimum Orders</h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                 Camera Scan Fee (per scanned page)
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>₹</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>₹</span>
                 <input
                   type="number"
                   step="0.5"
                   min="0"
                   value={scanFee}
                   onChange={(e) => setScanFee(parseFloat(e.target.value) || 0)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#ffffff',
-                    fontSize: '0.95rem',
-                  }}
+                  className="biz-input"
+                  style={{ fontWeight: 700 }}
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                 Minimum Order Amount (₹)
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>₹</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>₹</span>
                 <input
                   type="number"
                   step="1"
                   min="0"
                   value={minOrder}
                   onChange={(e) => setMinOrder(parseFloat(e.target.value) || 0)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#ffffff',
-                    fontSize: '0.95rem',
-                  }}
+                  className="biz-input"
+                  style={{ fontWeight: 700 }}
                 />
               </div>
             </div>

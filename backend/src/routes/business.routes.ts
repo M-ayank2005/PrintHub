@@ -3,6 +3,7 @@ import { requireBusinessAuth, AuthenticatedBusinessRequest } from '../middleware
 import { validateBody } from '../middleware/validate';
 import { businessService } from '../services/business.service';
 import { jobService } from '../services/job.service';
+import { printerService } from '../services/printer.service';
 import { JobModel } from '../models/job.model';
 import {
   BusinessProfileUpdateSchema,
@@ -14,6 +15,15 @@ const router = Router();
 
 // All business routes require business auth
 router.use(requireBusinessAuth);
+
+router.get('/system-printers', async (_req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
+  try {
+    const printers = await printerService.getSystemPrinters();
+    res.json({ printers });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get('/me', async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
   try {

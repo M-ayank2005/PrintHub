@@ -15,11 +15,13 @@ import {
   BellOff,
   Wifi,
   WifiOff,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { pendingJobs, isConnected, selectedPrinter, isDND, toggleDND, business } = useBusinessStore();
+  const { pendingJobs, isConnected, isDND, toggleDND, business, theme, toggleTheme } = useBusinessStore();
 
   const navItems = [
     { label: 'Requests', href: '/requests', icon: Inbox, count: pendingJobs.length },
@@ -41,6 +43,7 @@ export const Sidebar: React.FC = () => {
         justifyContent: 'space-between',
         padding: '24px 16px',
         flexShrink: 0,
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <div>
@@ -48,20 +51,22 @@ export const Sidebar: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 8px 24px 8px' }}>
           <div
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '12px',
+              background: 'var(--accent-indigo)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
+              color: '#ffffff',
             }}
           >
-            <Printer size={20} color="#ffffff" />
+            <Printer size={20} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff' }}>PrintHub</h2>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>PrintHub</h2>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
               {business?.shopName || 'Desktop Agent'}
             </span>
           </div>
@@ -80,25 +85,25 @@ export const Sidebar: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
+                  padding: '11px 14px',
+                  borderRadius: '12px',
                   textDecoration: 'none',
                   fontSize: '0.88rem',
                   fontWeight: 600,
-                  color: isActive ? '#ffffff' : '#94a3b8',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                   background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                  border: `1px solid ${isActive ? 'rgba(99, 102, 241, 0.4)' : 'transparent'}`,
+                  border: `1px solid ${isActive ? 'var(--border-active)' : 'transparent'}`,
                   transition: 'all 0.15s ease',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Icon size={18} color={isActive ? '#818cf8' : '#64748b'} />
+                  <Icon size={18} color={isActive ? 'var(--accent-indigo)' : 'var(--text-tertiary)'} />
                   <span>{item.label}</span>
                 </div>
                 {item.count !== undefined && item.count > 0 && (
                   <span
                     style={{
-                      background: '#6366f1',
+                      background: 'var(--accent-indigo)',
                       color: '#fff',
                       fontSize: '0.75rem',
                       fontWeight: 800,
@@ -115,10 +120,37 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Footer Info: Printer, Audio, Connection */}
+      {/* Footer Info: Theme Toggle, Audio, Connection */}
       <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
+        {/* Theme Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', padding: '0 4px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Do Not Disturb</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Theme Mode</span>
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            style={{
+              background: 'var(--btn-secondary-bg)',
+              border: '1px solid var(--border-subtle)',
+              cursor: 'pointer',
+              color: theme === 'dark' ? '#818cf8' : '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {theme === 'dark' ? <Moon size={13} /> : <Sun size={13} />}
+            <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+          </button>
+        </div>
+
+        {/* DND Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', padding: '0 4px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Do Not Disturb</span>
           <button
             onClick={toggleDND}
             style={{
@@ -126,13 +158,17 @@ export const Sidebar: React.FC = () => {
               border: 'none',
               cursor: 'pointer',
               color: isDND ? '#f43f5e' : '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '2px',
             }}
           >
             {isDND ? <BellOff size={16} /> : <Bell size={16} />}
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#94a3b8', padding: '0 4px' }}>
+        {/* Live Gateway Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)', padding: '0 4px' }}>
           {isConnected ? (
             <>
               <Wifi size={14} color="#10b981" />

@@ -3,10 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { useBusinessStore } from '../../lib/store';
 import { api } from '../../lib/api';
-import { Settings, Save, CheckCircle2, LogOut, Store, CreditCard, Shield } from 'lucide-react';
+import {
+  Settings,
+  Save,
+  CheckCircle2,
+  LogOut,
+  Store,
+  CreditCard,
+  Shield,
+  Sun,
+  Moon,
+  Palette,
+  Check,
+} from 'lucide-react';
 
 export default function SettingsPage() {
-  const { business, setBusiness } = useBusinessStore();
+  const { business, setBusiness, theme, setTheme } = useBusinessStore();
 
   const [shopName, setShopName] = useState('');
   const [address, setAddress] = useState('');
@@ -69,14 +81,14 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ maxWidth: '640px' }}>
+    <div style={{ maxWidth: '680px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff' }}>
-            Shop Settings & UPI
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            Shop Settings & Appearance
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.88rem' }}>
-            Configure your cafe profile, UPI VPA for mobile payments, and print workflow behavior.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
+            Configure your desktop app theme, counter profile, UPI receiver, and automated print rules.
           </p>
         </div>
 
@@ -89,22 +101,134 @@ export default function SettingsPage() {
       </div>
 
       {error && (
-        <div style={{ padding: '12px 16px', background: 'rgba(244, 63, 94, 0.15)', color: '#fca5a5', fontSize: '0.85rem', borderRadius: '10px', marginBottom: '20px' }}>
+        <div style={{ padding: '12px 16px', background: 'rgba(244, 63, 94, 0.15)', color: '#fca5a5', fontSize: '0.85rem', borderRadius: '12px', marginBottom: '20px' }}>
           {error}
         </div>
       )}
 
+      {/* Theme & Display Mode Selector */}
+      <div className="biz-card" style={{ padding: '24px', marginBottom: '20px' }}>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+          <Palette size={18} color="var(--accent-indigo)" />
+          Theme & Display Mode
+        </h3>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          Choose your desktop agent workspace theme. Changes apply immediately and persist across sessions.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          {/* Dark Mode Card */}
+          <div
+            onClick={() => setTheme('dark')}
+            style={{
+              padding: '16px 18px',
+              borderRadius: '14px',
+              background: theme === 'dark' ? 'rgba(99, 102, 241, 0.12)' : 'var(--btn-secondary-bg)',
+              border: `2px solid ${theme === 'dark' ? 'var(--accent-indigo)' : 'var(--border-subtle)'}`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              transition: 'all 0.18s ease',
+              boxShadow: theme === 'dark' ? '0 4px 18px rgba(99, 102, 241, 0.25)' : 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: '#0b0f19',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#818cf8',
+                }}
+              >
+                <Moon size={18} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)', display: 'block' }}>
+                  Dark Control Center
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  Low glare for long shifts
+                </span>
+              </div>
+            </div>
+
+            {theme === 'dark' && (
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <Check size={14} />
+              </div>
+            )}
+          </div>
+
+          {/* Light Mode Card */}
+          <div
+            onClick={() => setTheme('light')}
+            style={{
+              padding: '16px 18px',
+              borderRadius: '14px',
+              background: theme === 'light' ? 'rgba(79, 70, 229, 0.1)' : 'var(--btn-secondary-bg)',
+              border: `2px solid ${theme === 'light' ? 'var(--accent-indigo)' : 'var(--border-subtle)'}`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              transition: 'all 0.18s ease',
+              boxShadow: theme === 'light' ? '0 4px 18px rgba(79, 70, 229, 0.2)' : 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#f59e0b',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                }}
+              >
+                <Sun size={18} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)', display: 'block' }}>
+                  Light Studio Mode
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  Daylight enterprise view
+                </span>
+              </div>
+            </div>
+
+            {theme === 'light' && (
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <Check size={14} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSave}>
         {/* Profile Card */}
         <div className="biz-card" style={{ padding: '24px', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Store size={18} color="#818cf8" />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+            <Store size={18} color="var(--accent-indigo)" />
             Shop Information
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Shop Name *
               </label>
               <input
@@ -112,12 +236,12 @@ export default function SettingsPage() {
                 required
                 value={shopName}
                 onChange={(e) => setShopName(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                className="biz-input"
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Address / Location (Optional)
               </label>
               <input
@@ -125,7 +249,7 @@ export default function SettingsPage() {
                 placeholder="e.g. Near University Gate No. 2, Lucknow"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                className="biz-input"
               />
             </div>
           </div>
@@ -133,14 +257,14 @@ export default function SettingsPage() {
 
         {/* UPI Payments Card */}
         <div className="biz-card" style={{ padding: '24px', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CreditCard size={18} color="#06b6d4" />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+            <CreditCard size={18} color="var(--accent-cyan)" />
             UPI Payment Receiver
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Shop UPI ID (VPA)
               </label>
               <input
@@ -148,15 +272,15 @@ export default function SettingsPage() {
                 placeholder="e.g. cyberprints@okhdfcbank"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                className="biz-input"
               />
-              <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                Used to generate direct UPI intent links and QR codes on the customer phone.
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: '4px', display: 'block' }}>
+                Used to generate direct UPI intent links and dynamic QR codes on customer phones.
               </span>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Payee Display Name
               </label>
               <input
@@ -164,7 +288,7 @@ export default function SettingsPage() {
                 placeholder="e.g. Cyber Prints & Xerox"
                 value={payeeName}
                 onChange={(e) => setPayeeName(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                className="biz-input"
               />
             </div>
           </div>
@@ -172,18 +296,18 @@ export default function SettingsPage() {
 
         {/* Workflow Controls Card */}
         <div className="biz-card" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Shield size={18} color="#10b981" />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+            <Shield size={18} color="var(--accent-emerald)" />
             Print Workflow Controls
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <strong style={{ fontSize: '0.9rem', color: '#ffffff', display: 'block' }}>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block' }}>
                   Print Immediately (Default)
                 </strong>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Start silent printing as soon as you click Accept, without waiting for advance payment confirmation.
                 </span>
               </div>
@@ -191,16 +315,16 @@ export default function SettingsPage() {
                 type="checkbox"
                 checked={printBeforePayment}
                 onChange={(e) => setPrintBeforePayment(e.target.checked)}
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent-indigo)' }}
               />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
               <div>
-                <strong style={{ fontSize: '0.9rem', color: '#ffffff', display: 'block' }}>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block' }}>
                   Pause Incoming Requests
                 </strong>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Temporarily blocks new submissions when your shop is crowded or closing.
                 </span>
               </div>
@@ -208,7 +332,7 @@ export default function SettingsPage() {
                 type="checkbox"
                 checked={acceptPaused}
                 onChange={(e) => setAcceptPaused(e.target.checked)}
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent-indigo)' }}
               />
             </div>
           </div>

@@ -80,6 +80,9 @@ export const api = {
       method: 'POST',
     }),
 
+  // Printers
+  getSystemPrinters: () => request('/business/system-printers'),
+
   // Jobs
   getJobs: (status?: string) =>
     request(`/business/jobs${status ? `?status=${status}` : ''}`),

@@ -231,20 +231,35 @@ export default function CartPage() {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            borderColor: 'rgba(99, 102, 241, 0.4)',
+            borderColor: '#818cf8',
+            background: '#eef2ff',
           }}
         >
-          <Loader2 size={20} className="animate-spin" color="#818cf8" />
-          <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>{uploadingState}</span>
+          <Loader2 size={20} className="animate-spin" color="#4f46e5" />
+          <span style={{ fontSize: '0.88rem', color: '#312e81', fontWeight: 600 }}>{uploadingState}</span>
         </div>
       )}
 
       {/* Cart Document List */}
       {docs.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <FilePlus2 size={44} color="#64748b" style={{ margin: '0 auto 12px auto' }} />
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px' }}>{t.cartEmptyTitle}</h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', maxWidth: '280px', margin: '0 auto' }}>
+        <div className="glass-panel" style={{ padding: '48px 20px', textAlign: 'center' }}>
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '20px',
+              background: '#f1f5f9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              color: '#64748b',
+            }}
+          >
+            <FilePlus2 size={32} />
+          </div>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '6px', color: '#0f172a' }}>{t.cartEmptyTitle}</h3>
+          <p style={{ fontSize: '0.88rem', color: '#64748b', maxWidth: '300px', margin: '0 auto' }}>
             {t.cartEmptyDesc}
           </p>
         </div>

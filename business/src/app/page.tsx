@@ -70,10 +70,10 @@ export default function DashboardPage() {
       {/* Top Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Dashboard Overview
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
             Live performance, revenue, and recent jobs for {business?.shopName || 'your shop'}
           </p>
         </div>
@@ -89,13 +89,13 @@ export default function DashboardPage() {
         {/* Card 1: Revenue */}
         <div className="biz-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Today's Revenue</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Today&apos;s Revenue</span>
             <DollarSign size={18} color="#10b981" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             ₹{(totalRevenuePaise / 100).toFixed(2)}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#10b981' }}>
+          <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
             ₹{((todayStats.revenueConfirmedPaise || 0) / 100).toFixed(2)} confirmed
           </span>
         </div>
@@ -103,13 +103,13 @@ export default function DashboardPage() {
         {/* Card 2: Print Jobs */}
         <div className="biz-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Completed Jobs</span>
-            <Printer size={18} color="#818cf8" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Completed Jobs</span>
+            <Printer size={18} color="var(--accent-indigo)" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {todayStats.jobs || 0}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             {todayStats.rejected || 0} rejected • {todayStats.expired || 0} expired
           </span>
         </div>
@@ -117,13 +117,13 @@ export default function DashboardPage() {
         {/* Card 3: Sheets Printed */}
         <div className="biz-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Total Sheets</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Sheets</span>
             <Layers size={18} color="#06b6d4" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {todayStats.sheets || 0}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             {todayStats.bwSheets || 0} B&W • {todayStats.colorSheets || 0} Colour
           </span>
         </div>
@@ -131,13 +131,13 @@ export default function DashboardPage() {
         {/* Card 4: Pages */}
         <div className="biz-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Total Pages</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Pages</span>
             <FileText size={18} color="#f59e0b" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {todayStats.pages || 0}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             Across all customer submissions
           </span>
         </div>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                   <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#818cf8' }}>
                     {j.code}
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#ffffff' }}>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {j.customerName}
                   </td>
                   <td style={{ padding: '12px 14px', color: '#cbd5e1' }}>
