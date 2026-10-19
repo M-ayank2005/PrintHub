@@ -9,6 +9,9 @@ import { purgeService } from './services/purge.service';
 async function startServer(): Promise<void> {
   try {
     // 1. Connect to MongoDB
+    if (!config.mongoUri) {
+      throw new Error('MONGODB_URI is not defined in environment. Please set MONGODB_URI in your .env file.');
+    }
     const sanitizedUri = config.mongoUri.replace(/:([^:@]+)@/, ':****@');
     logger.info({ uri: sanitizedUri }, 'Connecting to MongoDB Atlas...');
     await mongoose.connect(config.mongoUri);
