@@ -11,7 +11,26 @@ let io: SocketIOServer | null = null;
 export function initSocketGateway(httpServer: HttpServer): SocketIOServer {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: '*', // Tauri origin and web origins
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (config.env !== 'production') {
+          if (
+            config.cors.allowedOrigins.includes(origin) ||
+            origin.startsWith('http://localhost:') ||
+            origin.startsWith('tauri://') ||
+            origin.startsWith('http://tauri.localhost') ||
+            origin.startsWith('https://tauri.localhost')
+          ) {
+            return callback(null, true);
+          }
+          return callback(null, true);
+        }
+        if (config.cors.allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(new Error('Origin not allowed by Socket.IO CORS'));
+      },
+      credentials: true,
       methods: ['GET', 'POST'],
     },
     pingInterval: 20000,
@@ -85,3 +104,15 @@ export function emitJobPurged(businessId: string, jobId: string): void {
     logger.info({ businessId, jobId }, 'Emitted job.purged to agent');
   }
 }
+
+export async function closeSocketGateway(): Promise<void> {
+  if (io) {
+    await new Promise<void>((resolve) => {
+      io!.close(() => {
+        io = null;
+        resolve();
+      });
+    });
+  }
+}
+

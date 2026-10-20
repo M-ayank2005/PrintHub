@@ -122,4 +122,14 @@ export class LocalDiskStorageProvider implements StorageProvider {
     }
     await fs.promises.writeFile(filePath, data);
   }
+
+  async checkHealth(): Promise<boolean> {
+    try {
+      await fs.promises.access(this.baseDir, fs.constants.R_OK | fs.constants.W_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
+

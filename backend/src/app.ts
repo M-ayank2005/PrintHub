@@ -17,6 +17,9 @@ import healthRoutes from './routes/health.routes';
 export function createApp(): express.Application {
   const app = express();
 
+  // Trust proxy for Render reverse proxy (to see real client IP for rate limiting and logging)
+  app.set('trust proxy', 1);
+
   // Security headers
   app.use(
     helmet({
@@ -28,17 +31,28 @@ export function createApp(): express.Application {
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. mobile apps, curl, Tauri native requests)
+        // Allow requests with no origin (e.g. server-to-server, curl)
         if (!origin) return callback(null, true);
-        if (
-          config.cors.allowedOrigins.includes(origin) ||
-          origin.startsWith('http://localhost:') ||
-          origin.startsWith('tauri://') ||
-          origin.startsWith('https://tauri.localhost')
-        ) {
+
+        if (config.env !== 'production') {
+          if (
+            config.cors.allowedOrigins.includes(origin) ||
+            origin.startsWith('http://localhost:') ||
+            origin.startsWith('tauri://') ||
+            origin.startsWith('http://tauri.localhost') ||
+            origin.startsWith('https://tauri.localhost')
+          ) {
+            return callback(null, true);
+          }
           return callback(null, true);
         }
-        return callback(null, true); // Permissive in dev, harden in prod
+
+        // Production strictly enforces allowed origins
+        if (config.cors.allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

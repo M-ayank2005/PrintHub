@@ -14,7 +14,10 @@ async function startServer(): Promise<void> {
     }
     const sanitizedUri = config.mongoUri.replace(/:([^:@]+)@/, ':****@');
     logger.info({ uri: sanitizedUri }, 'Connecting to MongoDB Atlas...');
-    await mongoose.connect(config.mongoUri);
+    mongoose.set('autoIndex', config.env === 'development');
+    await mongoose.connect(config.mongoUri, {
+      autoIndex: config.env === 'development',
+    });
     logger.info('MongoDB Atlas connected successfully');
 
     // 2. Initialize Express app and HTTP server
@@ -23,25 +26,44 @@ async function startServer(): Promise<void> {
 
     // 3. Initialize Socket.io Gateway
     initSocketGateway(server);
-    logger.info('Real-time Socket.io gateway initialized');
+    logger.info('Real-time Socket.io gateway initialized (single instance)');
 
     // 4. Start background Purge Sweeper
     const sweeperInterval = purgeService.startSweeper(60 * 1000);
 
-    // 5. Start listening
-    server.listen(config.port, () => {
-      logger.info(`PrintHub Backend API running on http://localhost:${config.port}`);
+    // 5. Start listening on 0.0.0.0 for containerized deployment (Render)
+    server.listen(config.port, '0.0.0.0', () => {
+      logger.info({ port: config.port, env: config.env }, 'PrintHub Backend API listening on 0.0.0.0');
     });
 
-    // 6. Graceful shutdown handler
+    // 6. Comprehensive graceful shutdown handler
+    let isShuttingDown = false;
     const shutdown = async (signal: string) => {
-      logger.info({ signal }, 'Gracefully shutting down server...');
+      if (isShuttingDown) return;
+      isShuttingDown = true;
+      logger.info({ signal }, 'Graceful shutdown initiated: closing connections...');
+
       clearInterval(sweeperInterval);
-      server.close(async () => {
+
+      const forceExitTimer = setTimeout(() => {
+        logger.warn('Forced shutdown timeout reached. Terminating process.');
+        process.exit(1);
+      }, 10000);
+      forceExitTimer.unref();
+
+      try {
+        const { closeSocketGateway } = await import('./realtime/gateway');
+        await closeSocketGateway();
+        await new Promise<void>((resolve, reject) => {
+          server.close((err) => (err ? reject(err) : resolve()));
+        });
         await mongoose.disconnect();
-        logger.info('Server closed cleanly');
+        logger.info('Graceful shutdown completed successfully');
         process.exit(0);
-      });
+      } catch (err) {
+        logger.error({ err }, 'Error during graceful shutdown');
+        process.exit(1);
+      }
     };
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));

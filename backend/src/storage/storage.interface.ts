@@ -40,4 +40,9 @@ export interface StorageProvider {
    * Reads raw bytes (optionally first N bytes for magic header validation).
    */
   getObjectBytes(key: string, maxBytes?: number): Promise<Buffer>;
+
+  /**
+   * Verifies that the storage service / bucket is reachable and operational.
+   */
+  checkHealth(): Promise<boolean>;
 }

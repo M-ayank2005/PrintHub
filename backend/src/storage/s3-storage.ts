@@ -5,6 +5,7 @@ import {
   HeadObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
+  HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { StorageProvider, PresignUploadResult, HeadResult } from './storage.interface';
@@ -118,4 +119,16 @@ export class S3StorageProvider implements StorageProvider {
     }
     return Buffer.concat(chunks);
   }
+
+  async checkHealth(): Promise<boolean> {
+    try {
+      const command = new HeadBucketCommand({ Bucket: this.bucket });
+      await this.client.send(command);
+      return true;
+    } catch (err) {
+      logger.error({ err, bucket: this.bucket }, 'S3 storage health check failed');
+      return false;
+    }
+  }
 }
+
