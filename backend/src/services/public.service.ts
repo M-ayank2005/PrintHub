@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { PDFDocument } from 'pdf-lib';
 import { BusinessModel } from '../models/business.model';
 import { JobModel, IJob } from '../models/job.model';
+import { UploadConfirmationModel } from '../models/upload-confirmation.model';
 import { config } from '../config';
 import { getStorageProvider } from '../storage';
 import { emitJobNew, emitJobUpdated } from '../realtime/gateway';
@@ -101,11 +102,17 @@ export class PublicService {
   }
 
   async confirmUpload(
+    session: CustomerSessionPayload,
     storageKey: string,
     kind: DocumentKind
   ): Promise<{ sizeBytes: number; pages: number }> {
+    if (!storageKey.startsWith(`jobs/${session.sessionId}/`)) {
+      throw new Error('Invalid storage key: does not belong to this session.');
+    }
+
     const storage = getStorageProvider();
     const head = await storage.headObject(storageKey);
+    let pageCount = 1;
 
     if (kind === 'PDF') {
       // 1. Magic byte check (%PDF-)
@@ -126,20 +133,29 @@ export class PublicService {
         throw new Error('Malformed or corrupted PDF file.');
       }
 
-      const pageCount = pdfDoc.getPageCount();
+      pageCount = pdfDoc.getPageCount();
       if (pageCount <= 0) {
         throw new Error('PDF document contains zero pages.');
       }
+    }
 
-      return {
+    // Persist verified upload confirmation
+    await UploadConfirmationModel.findOneAndUpdate(
+      { storageKey },
+      {
+        storageKey,
+        sessionId: session.sessionId,
+        kind,
         sizeBytes: head.size,
         pages: pageCount,
-      };
-    }
+        createdAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
 
     return {
       sizeBytes: head.size,
-      pages: 1,
+      pages: pageCount,
     };
   }
 
@@ -205,6 +221,31 @@ export class PublicService {
 
     if (!business.isOpen || business.acceptPaused) {
       throw new Error('This shop is currently not accepting new print requests.');
+    }
+
+    // Verify storage key session prefixes and enforce server-verified page counts
+    const sessionPrefix = `jobs/${session.sessionId}/`;
+    for (const doc of payload.docs) {
+      if (!doc.storageKey.startsWith(sessionPrefix)) {
+        throw new Error(`Unauthorized storage key prefix for document: ${doc.docId}`);
+      }
+    }
+
+    const storageKeys = payload.docs.map((d) => d.storageKey);
+    const confirmations = await UploadConfirmationModel.find({
+      storageKey: { $in: storageKeys },
+      sessionId: session.sessionId,
+    });
+    const confirmationMap = new Map(confirmations.map((c) => [c.storageKey, c]));
+
+    for (const doc of payload.docs) {
+      const conf = confirmationMap.get(doc.storageKey);
+      if (!conf) {
+        throw new Error(`Upload not confirmed for document key: ${doc.storageKey}`);
+      }
+      // Enforce server-verified page count and file size
+      doc.pages = conf.pages;
+      doc.sizeBytes = conf.sizeBytes;
     }
 
     // Authoritative server-side price recalculation

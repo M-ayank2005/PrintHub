@@ -49,11 +49,13 @@ export const BusinessSignupSchema = z.object({
   email: z.string().email().toLowerCase().trim(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   shopName: z.string().min(2, 'Shop name must be at least 2 characters').max(100).trim(),
+  deviceId: z.string().optional(),
 });
 
 export const BusinessLoginSchema = z.object({
   email: z.string().email().toLowerCase().trim(),
   password: z.string().min(1, 'Password is required'),
+  deviceId: z.string().optional(),
 });
 
 export const RefreshTokenSchema = z.object({

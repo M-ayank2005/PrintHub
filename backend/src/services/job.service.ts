@@ -177,21 +177,22 @@ export class JobService {
     const dateStr = new Date().toISOString().split('T')[0];
     const hour = new Date().getHours();
 
-    const isConfirmed = job.paymentState === 'PAID_CONFIRMED';
-    const revenueField = isConfirmed ? 'revenueConfirmedPaise' : 'revenuePendingPaise';
-
     const incUpdate: any = {
       jobs: 1,
-      docs: job.totals.documents,
-      pages: job.totals.pages,
-      sheets: job.totals.sheets,
-      bwSheets: job.totals.bwSheets,
-      colorSheets: job.totals.colorSheets,
-      [revenueField]: job.totals.pricePaise,
       [`hourly.${hour}`]: 1,
     };
 
-    if (job.status === 'REJECTED') {
+    if (job.status === 'PRINTED') {
+      const isConfirmed = job.paymentState === 'PAID_CONFIRMED';
+      const revenueField = isConfirmed ? 'revenueConfirmedPaise' : 'revenuePendingPaise';
+
+      incUpdate.docs = job.totals.documents;
+      incUpdate.pages = job.totals.pages;
+      incUpdate.sheets = job.totals.sheets;
+      incUpdate.bwSheets = job.totals.bwSheets;
+      incUpdate.colorSheets = job.totals.colorSheets;
+      incUpdate[revenueField] = job.totals.pricePaise;
+    } else if (job.status === 'REJECTED') {
       incUpdate.rejected = 1;
     } else if (job.status === 'EXPIRED') {
       incUpdate.expired = 1;

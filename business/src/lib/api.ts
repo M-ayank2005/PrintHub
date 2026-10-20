@@ -41,19 +41,19 @@ async function request(path: string, options: RequestInit = {}): Promise<any> {
 
 export const api = {
   // Auth
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, deviceId?: string) => {
     const data = await request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, deviceId }),
     });
     setAuthToken(data.tokens.accessToken);
     return data;
   },
 
-  signup: async (email: string, password: string, shopName: string) => {
+  signup: async (email: string, password: string, shopName: string, deviceId?: string) => {
     const data = await request('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, shopName }),
+      body: JSON.stringify({ email, password, shopName, deviceId }),
     });
     setAuthToken(data.tokens.accessToken);
     return data;

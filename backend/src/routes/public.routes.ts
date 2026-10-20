@@ -60,7 +60,7 @@ router.post(
   validateBody(UploadConfirmSchema),
   async (req: AuthenticatedCustomerRequest, res: Response): Promise<void> => {
     try {
-      const result = await publicService.confirmUpload(req.body.storageKey, req.body.kind);
+      const result = await publicService.confirmUpload(req.customerSession!, req.body.storageKey, req.body.kind);
       res.json(result);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

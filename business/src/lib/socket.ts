@@ -11,7 +11,9 @@ export function getSocket(): Socket | null {
 export function initBusinessSocket(
   onJobNew?: (job: any) => void,
   onJobUpdated?: (update: any) => void,
-  onJobPurged?: (data: any) => void
+  onJobPurged?: (data: any) => void,
+  deviceId?: string,
+  getPrinterCaps?: () => any[]
 ): Socket | null {
   const token = getAuthToken();
   if (!token) return null;
@@ -34,11 +36,16 @@ export function initBusinessSocket(
   socket.on('connect', () => {
     console.log('Business WebSocket connected:', socket?.id);
 
-    // Start 20s heartbeat
+    // Start 20s heartbeat with device identity and printer capabilities
     if (heartbeatInterval) clearInterval(heartbeatInterval);
-    heartbeatInterval = setInterval(() => {
-      socket?.emit('agent.heartbeat', {});
-    }, 20000);
+    const sendHeartbeat = () => {
+      socket?.emit('agent.heartbeat', {
+        deviceId,
+        printerCaps: getPrinterCaps ? getPrinterCaps() : undefined,
+      });
+    };
+    sendHeartbeat();
+    heartbeatInterval = setInterval(sendHeartbeat, 20000);
   });
 
   socket.on('disconnect', () => {

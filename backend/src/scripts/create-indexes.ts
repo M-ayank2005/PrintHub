@@ -5,6 +5,7 @@ import { BusinessModel } from '../models/business.model';
 import { JobModel } from '../models/job.model';
 import { DailyStatsModel } from '../models/daily-stats.model';
 import { RefreshTokenModel } from '../models/refresh-token.model';
+import { UploadConfirmationModel } from '../models/upload-confirmation.model';
 
 async function createIndexes(): Promise<void> {
   if (!config.mongoUri) {
@@ -29,6 +30,9 @@ async function createIndexes(): Promise<void> {
 
     console.log('Syncing indexes for RefreshTokenModel (token, expiresAt TTL)...');
     await RefreshTokenModel.syncIndexes();
+
+    console.log('Syncing indexes for UploadConfirmationModel (storageKey, sessionId, createdAt TTL)...');
+    await UploadConfirmationModel.syncIndexes();
 
     console.log('✅ All production database indexes created and synced successfully!');
     await mongoose.disconnect();

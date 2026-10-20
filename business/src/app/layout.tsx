@@ -8,6 +8,7 @@ import { PrinterLoader } from '../components/PrinterLoader';
 import { initBusinessSocket, disconnectSocket } from '../lib/socket';
 import { useBusinessStore } from '../lib/store';
 import { api, getAuthToken, removeAuthToken } from '../lib/api';
+import { getOrCreateDeviceId, getDeviceName } from '../lib/device';
 import { Printer, Sun, Moon } from 'lucide-react';
 
 export default function BusinessLayout({
@@ -39,9 +40,10 @@ export default function BusinessLayout({
     if (token) {
       const startTime = Date.now();
       fetchProfile()
-        .then(() => {
+        .then(async () => {
           setIsAuthenticated(true);
-          setupSocket();
+          const agentInfo = await registerBusinessAgent();
+          setupSocket(agentInfo?.deviceId, agentInfo?.printerCaps);
         })
         .catch((err) => {
           console.warn('Session verification failed, logging out:', err);
@@ -65,7 +67,64 @@ export default function BusinessLayout({
     };
   }, []);
 
-  const setupSocket = () => {
+  const registerBusinessAgent = async () => {
+    try {
+      const deviceId = getOrCreateDeviceId();
+      const deviceName = getDeviceName();
+
+      let printersList: any[] = [];
+      try {
+        if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+          const { invoke } = await import('@tauri-apps/api/core');
+          printersList = await invoke<any[]>('get_system_printers');
+        }
+      } catch (e) {
+        // Fallback to backend printer scan if running in browser
+      }
+
+      if (!printersList || printersList.length === 0) {
+        try {
+          const res = await api.getSystemPrinters();
+          printersList = res.printers || [];
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      const printerCaps = (printersList.length > 0 ? printersList : [
+        {
+          name: 'Windows Default Printer',
+          isDefault: true,
+          isOnline: true,
+          isColor: true,
+          isDuplex: true,
+          paperSizes: ['A4'],
+        },
+      ]).map((p: any) => ({
+        name: p.name || 'Printer',
+        isDefault: !!(p.isDefault ?? p.is_default),
+        isOnline: p.isOnline ?? p.is_online ?? true,
+        isColor: !!(p.isColor ?? p.is_color),
+        isDuplex: !!(p.isDuplex ?? p.is_duplex),
+        paperSizes: Array.isArray(p.paperSizes || p.paper_sizes) ? (p.paperSizes || p.paper_sizes) : ['A4'],
+      }));
+
+      await api.registerAgent({
+        deviceId,
+        deviceName,
+        printerCaps,
+        forceTakeover: true,
+      });
+
+      return { deviceId, printerCaps };
+    } catch (err) {
+      console.error('Failed to register business agent:', err);
+      return null;
+    }
+  };
+
+  const setupSocket = (deviceId?: string, caps?: any[]) => {
+    const activeDeviceId = deviceId || getOrCreateDeviceId();
     initBusinessSocket(
       (job) => {
         addJob(job);
@@ -90,7 +149,10 @@ export default function BusinessLayout({
       },
       (update) => {
         updateJob(update.jobId, update.status, update.paymentState);
-      }
+      },
+      undefined,
+      activeDeviceId,
+      () => caps || []
     );
     setConnected(true);
   };
@@ -111,17 +173,19 @@ export default function BusinessLayout({
     setAuthError(null);
     setIsSubmitting(true);
     try {
+      const deviceId = getOrCreateDeviceId();
       if (authMode === 'signup') {
         if (!shopName.trim()) {
           throw new Error('Please enter your shop or cafe name.');
         }
-        await api.signup(email.trim(), password, shopName.trim());
+        await api.signup(email.trim(), password, shopName.trim(), deviceId);
       } else {
-        await api.login(email.trim(), password);
+        await api.login(email.trim(), password, deviceId);
       }
       setIsAuthenticated(true);
       await fetchProfile();
-      setupSocket();
+      const agentInfo = await registerBusinessAgent();
+      setupSocket(agentInfo?.deviceId, agentInfo?.printerCaps);
     } catch (err: any) {
       setAuthError(err.message || (authMode === 'signup' ? 'Registration failed' : 'Login failed'));
     } finally {

@@ -24,7 +24,7 @@ export class AuthService {
     };
   }
 
-  async signup(data: { email: string; password: string; shopName: string }): Promise<{ business: IBusiness; tokens: AuthTokens }> {
+  async signup(data: { email: string; password: string; shopName: string; deviceId?: string }): Promise<{ business: IBusiness; tokens: AuthTokens }> {
     const existing = await BusinessModel.findOne({ email: data.email.toLowerCase() });
     if (existing) {
       throw new Error('An account with this email already exists.');
@@ -50,7 +50,7 @@ export class AuthService {
       printBeforePayment: true,
     });
 
-    const tokens = this.generateTokens(business._id.toString());
+    const tokens = this.generateTokens(business._id.toString(), data.deviceId);
 
     await RefreshTokenModel.create({
       token: tokens.refreshToken,

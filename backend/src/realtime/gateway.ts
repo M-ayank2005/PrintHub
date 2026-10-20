@@ -70,9 +70,10 @@ export function initSocketGateway(httpServer: HttpServer): SocketIOServer {
     logger.info({ businessId, deviceId, socketId: socket.id }, 'Desktop Agent connected to WebSocket');
 
     // Heartbeat from agent
-    socket.on('agent.heartbeat', async (data: { printerCaps?: any }) => {
-      if (deviceId) {
-        await businessService.updateHeartbeat(businessId, deviceId, data?.printerCaps);
+    socket.on('agent.heartbeat', async (data: { deviceId?: string; printerCaps?: any }) => {
+      const activeDeviceId = deviceId || data?.deviceId;
+      if (activeDeviceId) {
+        await businessService.updateHeartbeat(businessId, activeDeviceId, data?.printerCaps);
       }
     });
 
