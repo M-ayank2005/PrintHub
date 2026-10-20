@@ -20,7 +20,10 @@ export function initBusinessSocket(
     socket.disconnect();
   }
 
-  socket = io('http://localhost:4000', {
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+  const socketUrl = apiUrl ? apiUrl.replace(/^http:\/\//i, 'ws://').replace(/^https:\/\//i, 'wss://') : undefined;
+
+  socket = io(socketUrl || undefined, {
     auth: { token },
     reconnection: true,
     reconnectionAttempts: Infinity,

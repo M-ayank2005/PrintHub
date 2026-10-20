@@ -12,7 +12,8 @@ export default function PosterPage() {
   const [isRotating, setIsRotating] = useState(false);
 
   const shopSlug = business?.slug || 'sample-slug';
-  const customerUrl = `http://localhost:3000/p/${shopSlug}`;
+  const customerBase = (process.env.NEXT_PUBLIC_CUSTOMER_URL || '').replace(/\/+$/, '');
+  const customerUrl = `${customerBase}/p/${shopSlug}`;
 
   useEffect(() => {
     if (shopSlug) {

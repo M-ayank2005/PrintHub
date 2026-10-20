@@ -18,9 +18,13 @@ export class LocalDiskStorageProvider implements StorageProvider {
   }
 
   private getFilePath(key: string): string {
-    // Prevent path traversal
-    const safeKey = key.replace(/(\.\.[\/\\])/g, '');
-    return path.join(this.baseDir, safeKey);
+    // Prevent path traversal: resolve and ensure path stays inside baseDir
+    const resolvedBase = path.resolve(this.baseDir);
+    const resolvedPath = path.resolve(this.baseDir, key);
+    if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
+      throw new Error(`Path traversal detected for key: ${key}`);
+    }
+    return resolvedPath;
   }
 
   private generateToken(key: string, expiresAt: number, action: 'upload' | 'download'): string {
@@ -39,7 +43,8 @@ export class LocalDiskStorageProvider implements StorageProvider {
   async presignUpload(key: string, contentType: string, maxBytes: number, ttlSec: number): Promise<PresignUploadResult> {
     const expiresAt = Date.now() + ttlSec * 1000;
     const token = this.generateToken(key, expiresAt, 'upload');
-    const url = `http://localhost:${config.port}/storage/local/upload?key=${encodeURIComponent(
+    const baseUrl = config.publicApiUrl.replace(/\/+$/, '');
+    const url = `${baseUrl}/storage/local/upload?key=${encodeURIComponent(
       key
     )}&expires=${expiresAt}&token=${token}&contentType=${encodeURIComponent(contentType)}`;
 
@@ -55,7 +60,8 @@ export class LocalDiskStorageProvider implements StorageProvider {
   async presignDownload(key: string, ttlSec: number): Promise<string> {
     const expiresAt = Date.now() + ttlSec * 1000;
     const token = this.generateToken(key, expiresAt, 'download');
-    return `http://localhost:${config.port}/storage/local/download?key=${encodeURIComponent(
+    const baseUrl = config.publicApiUrl.replace(/\/+$/, '');
+    return `${baseUrl}/storage/local/download?key=${encodeURIComponent(
       key
     )}&expires=${expiresAt}&token=${token}`;
   }
