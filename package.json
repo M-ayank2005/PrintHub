@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "description": "QR Print Platform Monorepo",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "pnpm --recursive run build",
-    "test": "pnpm --recursive run test",
+    "build": "pnpm build:shared && pnpm build:backend && pnpm build:customer",
+    "build:shared": "pnpm --filter @printhub/shared build",
+    "build:backend": "pnpm --filter @printhub/backend build",
+    "build:customer": "pnpm --filter @printhub/customer build",
+    "build:business": "pnpm --filter @printhub/business build",
+    "test": "pnpm --filter @printhub/shared test && pnpm --filter @printhub/backend test",
+    "typecheck": "pnpm --filter @printhub/shared exec tsc --noEmit && pnpm --filter @printhub/backend exec tsc --noEmit && pnpm --filter @printhub/customer exec tsc --noEmit && pnpm --filter @printhub/business exec tsc --noEmit",
     "dev:backend": "pnpm --filter @printhub/backend dev",
     "dev:customer": "pnpm --filter @printhub/customer dev",
     "dev:business": "pnpm --filter @printhub/business dev",
