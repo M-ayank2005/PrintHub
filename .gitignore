@@ -8,11 +8,13 @@ build/
 .next/
 out/
 target/
+*.tsbuildinfo
+business/src-tauri/target/
 
 # Environment and secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 *.pem
 *.key
 
@@ -27,6 +29,3 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
-
-# Tauri
-/apps/desktop/src-tauri/target/
