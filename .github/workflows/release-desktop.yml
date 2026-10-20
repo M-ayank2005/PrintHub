@@ -1,0 +1,56 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-tauri:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: business/src-tauri
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @printhub/shared build
+
+      - name: Build Tauri Desktop NSIS Installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.yourdomain.com' }}
+        with:
+          projectPath: business
+          tagName: ${{ github.ref_name }}
+          releaseName: 'PrintHub Business ${{ github.ref_name }}'
+          releaseBody: |
+            PrintHub Business Shop Terminal Desktop Application (${{ github.ref_name }})
+
+            > [!NOTE]
+            > Unsigned NSIS installers may trigger a Microsoft Defender SmartScreen prompt on first launch ("Windows protected your PC"). Click "More info" and select "Run anyway".
+          releaseDraft: false
+          prerelease: false
