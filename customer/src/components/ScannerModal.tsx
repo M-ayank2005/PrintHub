@@ -1,8 +1,14 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Check, RefreshCw, Plus, Trash2, Sliders } from 'lucide-react';
-import { optimizeImage, imagesToPdf } from '../lib/pdf-processor';
+import React, { useEffect } from 'react';
+import { Portal } from '../ui/Portal';
+import { useScanner } from './scanner/useScanner';
+import { CameraStep } from './scanner/CameraStep';
+import { CropStep } from './scanner/CropStep';
+import { PagesStep } from './scanner/PagesStep';
+import { AlertTriangle } from 'lucide-react';
+import { useCustomerStore } from '../lib/store';
+import { translations } from '../lib/i18n';
 
 interface ScannerModalProps {
   isOpen: boolean;
@@ -10,312 +16,228 @@ interface ScannerModalProps {
   onComplete: (pdfBlob: Blob, pageCount: number) => void;
 }
 
-export const ScannerModal: React.FC<ScannerModalProps> = ({ isOpen, onClose, onComplete }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+export const ScannerModal: React.FC<ScannerModalProps> = ({
+  isOpen,
+  onClose,
+  onComplete,
+}) => {
+  const { language } = useCustomerStore();
+  const t = translations[language];
 
-  const [scannedPages, setScannedPages] = useState<Uint8Array[]>([]);
-  const [filterMode, setFilterMode] = useState<'ORIGINAL' | 'ENHANCED' | 'GRAYSCALE' | 'BW'>('BW');
-  const [cameraActive, setCameraActive] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const {
+    pages,
+    activeStep,
+    setActiveStep,
+    currentBlob,
+    editingIndex,
+    crop,
+    rotation,
+    filter,
+    isExporting,
+    exportProgress,
+    isDiscardSheetOpen,
+    setIsDiscardSheetOpen,
+    handlePhotoCaptured,
+    saveCroppedPage,
+    openEditPage,
+    deletePage,
+    retakePage,
+    reorderPages,
+    finishAndExport,
+    handleRequestClose,
+    confirmDiscard,
+  } = useScanner(onComplete, onClose);
 
+  // Lock body scroll and handle Android back button & Escape key
   useEffect(() => {
-    if (isOpen) {
-      startCamera();
-    } else {
-      stopCamera();
-      setScannedPages([]);
-    }
-    return () => {
-      stopCamera();
+    if (!isOpen) return;
+
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    // Push history state so Android back button closes or triggers discard confirmation
+    window.history.pushState({ scannerModalOpen: true }, '');
+
+    const handlePopState = () => {
+      handleRequestClose();
     };
-  }, [isOpen]);
 
-  const startCamera = async () => {
-    try {
-      let stream: MediaStream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-          audio: false,
-        });
-      } catch (e) {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleRequestClose();
       }
+    };
 
-      streamRef.current = stream;
-      if (videoRef.current) {
-        const video = videoRef.current;
-        video.srcObject = stream;
-        video.muted = true;
-        video.defaultMuted = true;
-        video.playsInline = true;
-        video.setAttribute('playsinline', 'true');
-        video.setAttribute('muted', 'true');
-        video.setAttribute('autoplay', 'true');
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
 
-        if (video.readyState < 2) {
-          await new Promise<void>((res) => {
-            video.onloadeddata = () => res();
-            setTimeout(res, 500);
-          });
-        }
-        await video.play().catch((err) => console.warn('Scanner camera play err:', err));
-      }
-      setCameraActive(true);
-    } catch (err) {
-      console.warn('Camera access denied or unavailable', err);
-      setCameraActive(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setCameraActive(false);
-  };
-
-  const capturePage = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Apply Filter Mode
-    if (filterMode === 'GRAYSCALE' || filterMode === 'BW') {
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        let v = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        if (filterMode === 'BW') {
-          v = v > 128 ? 255 : 0; // Adaptive threshold approximation
-        }
-        data[i] = v;
-        data[i + 1] = v;
-        data[i + 2] = v;
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.85)
-    );
-
-    if (blob) {
-      const optimized = await optimizeImage(blob, filterMode !== 'BW' && filterMode !== 'GRAYSCALE');
-      setScannedPages((prev) => [...prev, optimized]);
-    }
-  };
-
-  const handleFinishScan = async () => {
-    if (scannedPages.length === 0) return;
-    setIsProcessing(true);
-    try {
-      const pdfBytes = await imagesToPdf(scannedPages.map((data) => ({ data })));
-      const pdfBlob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' });
-      onComplete(pdfBlob, scannedPages.length);
-      onClose();
-    } catch (err) {
-      console.error('Failed to compile scanned PDF', err);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const removePage = (index: number) => {
-    setScannedPages((prev) => prev.filter((_, i) => i !== index));
-  };
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleRequestClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.92)',
-        zIndex: 100,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '16px',
-      }}
-    >
-      {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h3 style={{ color: '#ffffff', fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Camera size={20} color="#818cf8" />
-          Document Scanner
-        </h3>
-        <button
-          onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-        >
-          <X size={24} />
-        </button>
-      </div>
-
-      {/* Filter Selection Segment */}
-      <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '4px', border: '1px solid rgba(255, 255, 255, 0.2)', gap: '4px', marginBottom: '12px' }}>
-        {(['BW', 'GRAYSCALE', 'ORIGINAL'] as const).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setFilterMode(mode)}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              background: filterMode === mode ? '#ffffff' : 'transparent',
-              color: filterMode === mode ? '#4f46e5' : '#e2e8f0',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {mode === 'BW' ? 'B&W (High Contrast)' : mode === 'GRAYSCALE' ? 'Grayscale' : 'Color'}
-          </button>
-        ))}
-      </div>
-
-      {/* Live Viewfinder */}
+    <Portal>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Document Scanner"
         style={{
-          flex: 1,
-          position: 'relative',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          backgroundColor: '#000000',
+          position: 'fixed',
+          inset: 0,
+          height: '100dvh',
+          zIndex: 1000,
+          background: '#0b1020',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
-        <video
-          ref={videoRef}
-          playsInline
-          autoPlay
-          muted
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        <canvas ref={canvasRef} style={{ display: 'none' }} />
+        {/* Step 1: Camera */}
+        {activeStep === 'camera' && (
+          <CameraStep
+            pages={pages}
+            editingIndex={editingIndex}
+            onPhotoCaptured={handlePhotoCaptured}
+            onOpenPages={() => setActiveStep('pages')}
+            onFinishScan={finishAndExport}
+            onClose={handleRequestClose}
+          />
+        )}
 
-        {/* Viewfinder Overlay Guides */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: '24px',
-            border: '2px dashed rgba(255, 255, 255, 0.4)',
-            borderRadius: '12px',
-            pointerEvents: 'none',
-          }}
-        />
+        {/* Step 2: Crop */}
+        {activeStep === 'crop' && currentBlob && (
+          <CropStep
+            blob={currentBlob}
+            initialCrop={crop}
+            initialRotation={rotation}
+            initialFilter={filter}
+            onSave={saveCroppedPage}
+            onRetake={() => setActiveStep('camera')}
+            onCancel={() => {
+              if (editingIndex !== null) {
+                setActiveStep('pages');
+              } else {
+                setActiveStep('camera');
+              }
+            }}
+          />
+        )}
 
-        {/* Capture Shutter Button */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          <button
-            onClick={capturePage}
+        {/* Step 3: Pages Review */}
+        {activeStep === 'pages' && (
+          <PagesStep
+            pages={pages}
+            isExporting={isExporting}
+            exportProgress={exportProgress}
+            onEditPage={openEditPage}
+            onDeletePage={deletePage}
+            onRetakePage={retakePage}
+            onReorderPages={reorderPages}
+            onAddPage={() => setActiveStep('camera')}
+            onFinish={finishAndExport}
+            onClose={handleRequestClose}
+          />
+        )}
+
+        {/* Discard Confirmation Bottom Sheet (Not confirm()) */}
+        {isDiscardSheetOpen && (
+          <div
             style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              border: '4px solid rgba(99, 102, 241, 0.8)',
-              boxShadow: '0 0 25px rgba(255, 255, 255, 0.5)',
-              cursor: 'pointer',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1100,
+              background: 'rgba(0, 0, 0, 0.75)',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-end',
               justifyContent: 'center',
             }}
           >
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #000' }} />
-          </button>
-        </div>
-      </div>
-
-      {/* Scanned Pages Tray & Done Button */}
-      <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-          {scannedPages.map((_, idx) => (
             <div
-              key={idx}
               style={{
-                width: '44px',
-                height: '56px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
+                width: '100%',
+                maxWidth: '460px',
+                background: '#151c33',
+                borderTopLeftRadius: '24px',
+                borderTopRightRadius: '24px',
+                padding: '24px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.6)',
+                borderTop: '1px solid rgba(255,255,255,0.15)',
               }}
             >
-              <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>p.{idx + 1}</span>
-              <button
-                onClick={() => removePage(idx)}
-                style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  background: '#f43f5e',
-                  borderRadius: '50%',
-                  border: 'none',
-                  color: '#fff',
-                  width: '16px',
-                  height: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          {scannedPages.length === 0 && (
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No pages captured yet</span>
-          )}
-        </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#f87171',
+                  }}
+                >
+                  <AlertTriangle size={22} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+                    {t.discardScanTitle}
+                  </h4>
+                  <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
+                    {t.discardScanDesc}
+                  </p>
+                </div>
+              </div>
 
-        <button
-          onClick={handleFinishScan}
-          disabled={scannedPages.length === 0 || isProcessing}
-          className="btn-primary"
-          style={{ padding: '12px 18px', fontSize: '0.9rem' }}
-        >
-          {isProcessing ? 'Compiling PDF...' : `Done (${scannedPages.length} ${scannedPages.length === 1 ? 'page' : 'pages'})`}
-        </button>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsDiscardSheetOpen(false)}
+                  className="btn-secondary"
+                  style={{
+                    flex: 1,
+                    minHeight: '48px',
+                    borderRadius: '14px',
+                    background: 'rgba(255,255,255,0.08)',
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    color: '#ffffff',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {t.keepScanning}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={confirmDiscard}
+                  style={{
+                    flex: 1,
+                    minHeight: '48px',
+                    borderRadius: '14px',
+                    background: '#e11d48',
+                    color: '#ffffff',
+                    border: 'none',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t.discard}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Portal>
   );
 };
