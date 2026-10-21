@@ -73,7 +73,7 @@ export const config = {
   env: parsedEnv.NODE_ENV,
   port: parsedEnv.PORT,
   publicApiUrl: parsedEnv.PUBLIC_API_URL || `http://localhost:${parsedEnv.PORT}`,
-  customerAppUrl: parsedEnv.CUSTOMER_APP_URL || 'http://localhost:3000',
+  customerAppUrl: parsedEnv.CUSTOMER_APP_URL || (isProd ? 'https://print-hub-mauve.vercel.app' : 'http://localhost:3000'),
   mongoUri: parsedEnv.MONGODB_URI || '',
   jwt: {
     get accessSecret(): string {

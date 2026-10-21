@@ -34,23 +34,42 @@ export function createApp(): express.Application {
         // Allow requests with no origin (e.g. server-to-server, curl)
         if (!origin) return callback(null, true);
 
+        // Normalize origin (remove trailing slash and lowercase)
+        const cleanOrigin = origin.replace(/\/+$/, '').toLowerCase();
+
         // Always allow desktop Tauri schemes and local origin requests
         if (
-          origin.startsWith('http://localhost') ||
-          origin.startsWith('tauri://') ||
-          origin.startsWith('http://tauri.localhost') ||
-          origin.startsWith('https://tauri.localhost') ||
-          origin.startsWith('asset://')
+          cleanOrigin.startsWith('http://localhost') ||
+          cleanOrigin.startsWith('https://localhost') ||
+          cleanOrigin.startsWith('tauri://') ||
+          cleanOrigin.startsWith('http://tauri.localhost') ||
+          cleanOrigin.startsWith('https://tauri.localhost') ||
+          cleanOrigin.startsWith('asset://')
         ) {
           return callback(null, true);
         }
 
-        // Production strictly enforces allowed origins for web requests
-        if (config.cors.allowedOrigins.includes(origin)) {
+        // Always allow any Vercel deployment (production or preview deployments)
+        if (cleanOrigin.endsWith('.vercel.app')) {
           return callback(null, true);
         }
 
-        return callback(new Error('Not allowed by CORS'));
+        // Check configured customerAppUrl
+        if (config.customerAppUrl && cleanOrigin === config.customerAppUrl.replace(/\/+$/, '').toLowerCase()) {
+          return callback(null, true);
+        }
+
+        // Production check against allowed origins
+        const isAllowed = config.cors.allowedOrigins.some(
+          (allowed: string) => allowed.replace(/\/+$/, '').toLowerCase() === cleanOrigin
+        );
+
+        if (isAllowed) {
+          return callback(null, true);
+        }
+
+        logger.warn({ origin }, 'CORS request blocked');
+        return callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

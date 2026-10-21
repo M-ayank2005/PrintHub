@@ -1,4 +1,4 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://printhub-hltn.onrender.com').replace(/\/+$/, '');
 
 export function getStoredSessionToken(slug: string): string | null {
   if (typeof window === 'undefined') return null;
