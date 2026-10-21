@@ -5,7 +5,7 @@ services:
     plan: starter
     autoDeploy: true
     healthCheckPath: /healthz
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @printhub/shared build && pnpm --filter @printhub/backend build
+    buildCommand: npm install -g pnpm@9.15.4 && pnpm install --frozen-lockfile && pnpm --filter @printhub/shared build && pnpm --filter @printhub/backend build
     startCommand: pnpm --filter @printhub/backend start
     envVars:
       - key: NODE_ENV

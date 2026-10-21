@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { JobModel, IJob } from '../models/job.model';
+import { BusinessModel } from '../models/business.model';
 import { DailyStatsModel } from '../models/daily-stats.model';
 import { getStorageProvider } from '../storage';
 import { purgeService } from './purge.service';
@@ -119,7 +120,8 @@ export class JobService {
    */
   async getAgentDownloadUrls(
     jobId: string,
-    businessId: string
+    businessId: string,
+    deviceId?: string
   ): Promise<{
     jobId: string;
     code: string;
@@ -131,6 +133,15 @@ export class JobService {
       downloadUrl: string;
     }>;
   }> {
+    const business = await BusinessModel.findById(businessId);
+    if (!business) {
+      throw new Error('Business not found.');
+    }
+
+    if (business.agent?.deviceId && deviceId && business.agent.deviceId !== deviceId) {
+      throw new Error('Unauthorized device: This request does not originate from the registered print agent.');
+    }
+
     const job = await JobModel.findOne({
       _id: jobId,
       businessId,
@@ -161,6 +172,11 @@ export class JobService {
           downloadUrl,
         };
       })
+    );
+
+    logger.info(
+      { jobId: job._id.toString(), businessId, docCount: job.docs.length },
+      'Short-lived 60s presigned download URLs issued for job printing'
     );
 
     return {

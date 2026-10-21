@@ -60,12 +60,20 @@ export async function uploadBinary(
   uploadUrl: string,
   data: Blob | ArrayBuffer,
   contentType: string,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
+  headers?: Record<string, string>
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', uploadUrl, true);
-    xhr.setRequestHeader('Content-Type', contentType);
+
+    if (headers) {
+      for (const [key, value] of Object.entries(headers)) {
+        xhr.setRequestHeader(key, value);
+      }
+    } else {
+      xhr.setRequestHeader('Content-Type', contentType);
+    }
 
     if (xhr.upload && onProgress) {
       xhr.upload.onprogress = (e) => {

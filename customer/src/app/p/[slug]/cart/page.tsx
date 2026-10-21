@@ -61,7 +61,7 @@ export default function CartPage() {
     try {
       setUploadingState(`Uploading ${file.name}...`);
       const presign = await presignUpload(sessionToken, 'PDF', 'application/pdf', file.size);
-      await uploadBinary(presign.uploadUrl, file, 'application/pdf');
+      await uploadBinary(presign.uploadUrl, file, 'application/pdf', undefined, presign.headers);
       const confirmed = await confirmUpload(sessionToken, presign.storageKey, 'PDF');
 
       addDoc({
@@ -109,7 +109,7 @@ export default function CartPage() {
 
       setUploadingState('Uploading photo PDF...');
       const presign = await presignUpload(sessionToken, 'IMAGE', 'application/pdf', pdfBlob.size);
-      await uploadBinary(presign.uploadUrl, pdfBlob, 'application/pdf');
+      await uploadBinary(presign.uploadUrl, pdfBlob, 'application/pdf', undefined, presign.headers);
       const confirmed = await confirmUpload(sessionToken, presign.storageKey, 'PDF');
 
       addDoc({
@@ -143,7 +143,7 @@ export default function CartPage() {
     try {
       setUploadingState('Uploading scanned document...');
       const presign = await presignUpload(sessionToken, 'SCAN', 'application/pdf', pdfBlob.size);
-      await uploadBinary(presign.uploadUrl, pdfBlob, 'application/pdf');
+      await uploadBinary(presign.uploadUrl, pdfBlob, 'application/pdf', undefined, presign.headers);
       const confirmed = await confirmUpload(sessionToken, presign.storageKey, 'PDF');
 
       addDoc({

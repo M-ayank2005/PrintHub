@@ -6,6 +6,7 @@ export interface IUploadConfirmation extends Document {
   kind: string;
   sizeBytes: number;
   pages: number;
+  versionId?: string;
   createdAt: Date;
 }
 
@@ -16,6 +17,7 @@ const UploadConfirmationSchema = new Schema<IUploadConfirmation>(
     kind: { type: String, required: true },
     sizeBytes: { type: Number, required: true },
     pages: { type: Number, required: true },
+    versionId: { type: String },
     createdAt: { type: Date, default: Date.now, expires: 7200 }, // Expire after 2 hours
   },
   { timestamps: false }

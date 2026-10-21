@@ -29,11 +29,12 @@ export class S3StorageProvider implements StorageProvider {
     });
   }
 
-  async presignUpload(key: string, contentType: string, _maxBytes: number, ttlSec: number): Promise<PresignUploadResult> {
+  async presignUpload(key: string, contentType: string, maxBytes: number, ttlSec: number): Promise<PresignUploadResult> {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       ContentType: contentType,
+      ContentLength: maxBytes,
     });
 
     const url = await getSignedUrl(this.client, command, { expiresIn: ttlSec });
@@ -42,6 +43,7 @@ export class S3StorageProvider implements StorageProvider {
       storageKey: key,
       headers: {
         'Content-Type': contentType,
+        'Content-Length': String(maxBytes),
       },
     };
   }

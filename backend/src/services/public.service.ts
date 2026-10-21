@@ -77,8 +77,16 @@ export class PublicService {
     session: CustomerSessionPayload,
     data: { kind: DocumentKind; contentType: string; sizeBytes: number }
   ): Promise<{ docId: string; uploadUrl: string; headers?: Record<string, string>; storageKey: string }> {
+    if (!data.sizeBytes || data.sizeBytes <= 0) {
+      throw new Error('File size must be greater than zero.');
+    }
     if (data.sizeBytes > LIMITS.MAX_FILE_SIZE_BYTES) {
       throw new Error(`File exceeds maximum allowed size of 25 MB.`);
+    }
+
+    const business = await BusinessModel.findById(session.businessId);
+    if (!business || !business.isOpen || business.acceptPaused) {
+      throw new Error('This shop is currently closed or temporarily not accepting new print requests.');
     }
 
     const docId = nanoid(10);
@@ -112,17 +120,24 @@ export class PublicService {
 
     const storage = getStorageProvider();
     const head = await storage.headObject(storageKey);
+    if (!head || head.size <= 0) {
+      throw new Error('Uploaded file is empty or was not found in storage.');
+    }
+    if (head.size > LIMITS.MAX_FILE_SIZE_BYTES) {
+      throw new Error(`Uploaded file (${(head.size / (1024 * 1024)).toFixed(2)} MB) exceeds maximum allowed size of 25 MB.`);
+    }
+
     let pageCount = 1;
 
     if (kind === 'PDF') {
-      // 1. Magic byte check (%PDF-)
+      // 1. Magic byte check (%PDF-) with bounded 8-byte read
       const magicBytes = await storage.getObjectBytes(storageKey, 8);
       if (!magicBytes.toString('utf8', 0, 5).startsWith('%PDF-')) {
         throw new Error('Invalid file format: file does not match PDF magic header.');
       }
 
-      // 2. Load PDF to count pages and verify encryption
-      const pdfBytes = await storage.getObjectBytes(storageKey);
+      // 2. Load PDF with bounded read to count pages and verify encryption
+      const pdfBytes = await storage.getObjectBytes(storageKey, LIMITS.MAX_FILE_SIZE_BYTES);
       let pdfDoc: PDFDocument;
       try {
         pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: false });
@@ -148,6 +163,7 @@ export class PublicService {
         kind,
         sizeBytes: head.size,
         pages: pageCount,
+        versionId: head.versionId,
         createdAt: new Date(),
       },
       { upsert: true, new: true }
@@ -290,15 +306,19 @@ export class PublicService {
     const expiresAt = new Date(now.getTime() + LIMITS.MAX_JOB_TTL_MINUTES * 60 * 1000);
     const purgeAfter = new Date(now.getTime() + LIMITS.MAX_JOB_TTL_MINUTES * 60 * 1000);
 
-    const jobDocs = payload.docs.map((doc, idx) => ({
-      docId: doc.docId,
-      kind: doc.kind,
-      storageKey: doc.storageKey,
-      sizeBytes: doc.sizeBytes,
-      pages: doc.pages,
-      options: doc.options,
-      priceSubtotalPaise: breakdowns[idx].subtotalPaise,
-    }));
+    const jobDocs = payload.docs.map((doc, idx) => {
+      const conf = confirmationMap.get(doc.storageKey);
+      return {
+        docId: doc.docId,
+        kind: doc.kind,
+        storageKey: doc.storageKey,
+        versionId: conf?.versionId,
+        sizeBytes: doc.sizeBytes,
+        pages: doc.pages,
+        options: doc.options,
+        priceSubtotalPaise: breakdowns[idx].subtotalPaise,
+      };
+    });
 
     const job = await JobModel.create({
       code,

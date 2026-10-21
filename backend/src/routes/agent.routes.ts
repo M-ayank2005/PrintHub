@@ -16,7 +16,7 @@ router.post(
   '/jobs/:id/download-urls',
   async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
-      const result = await jobService.getAgentDownloadUrls(req.params.id, req.businessId!);
+      const result = await jobService.getAgentDownloadUrls(req.params.id, req.businessId!, req.deviceId);
       res.json(result);
     } catch (err: any) {
       res.status(403).json({ error: err.message });
