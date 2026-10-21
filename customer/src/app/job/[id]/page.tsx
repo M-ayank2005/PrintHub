@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { StepIndicator, Card, Button, Sheet, useToast } from '../../../ui';
+import { motion } from 'framer-motion';
 
 const STATUS_ORDER: Record<string, number> = {
   SUBMITTED: 0,
@@ -291,7 +292,7 @@ export default function JobStatusPage() {
 
               return (
                 <div key={step.index} style={{ position: 'relative', display: 'flex', gap: '14px', paddingBottom: idx < stepsConfig.length - 1 ? '24px' : '0' }}>
-                  {/* Connecting Vertical Progress Line */}
+                  {/* Connecting Vertical Progress Line with pathLength animation */}
                   {idx < stepsConfig.length - 1 && (
                     <div
                       style={{
@@ -300,11 +301,26 @@ export default function JobStatusPage() {
                         top: '36px',
                         bottom: '0',
                         width: '3px',
-                        background: currentStepIndex > step.index ? '#059669' : '#e2e8f0',
-                        transition: 'background 0.3s ease',
                         zIndex: 1,
                       }}
-                    />
+                    >
+                      <svg style={{ width: '3px', height: '100%', overflow: 'visible' }}>
+                        <line x1="1.5" y1="0" x2="1.5" y2="100%" stroke="#e2e8f0" strokeWidth="3" />
+                        {currentStepIndex > step.index && (
+                          <motion.line
+                            x1="1.5"
+                            y1="0"
+                            x2="1.5"
+                            y2="100%"
+                            stroke="#059669"
+                            strokeWidth="3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 0.45, ease: 'easeInOut' }}
+                          />
+                        )}
+                      </svg>
+                    </div>
                   )}
 
                   {/* Step Icon Badge */}
@@ -334,7 +350,23 @@ export default function JobStatusPage() {
                     }}
                   >
                     {isDone ? (
-                      <Check size={18} strokeWidth={3} />
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ffffff"
+                        strokeWidth="3.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <motion.path
+                          d="M20 6L9 17l-5-5"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.35, ease: 'easeOut' }}
+                        />
+                      </svg>
                     ) : (
                       <step.icon size={18} />
                     )}

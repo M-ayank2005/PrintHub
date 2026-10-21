@@ -12,6 +12,7 @@ import { presignUpload, uploadBinary, confirmUpload, getQuote } from '../../../.
 import { optimizeImage, imagesToPdf } from '../../../../lib/pdf-processor';
 import { UploadCloud, Camera, Image as ImageIcon, Loader2, FilePlus2 } from 'lucide-react';
 import { StepIndicator, IconTile, useToast } from '../../../../ui';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Lazy load heavy document scanner component
 const ScannerModal = dynamic(
@@ -280,11 +281,22 @@ export default function CartPage() {
           </p>
         </div>
       ) : (
-        <div>
-          {docs.map((doc) => (
-            <DocumentCard key={doc.docId} doc={doc} />
-          ))}
-        </div>
+        <motion.div layout>
+          <AnimatePresence mode="popLayout">
+            {docs.map((doc) => (
+              <motion.div
+                key={doc.docId}
+                layout
+                initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9, height: 0, marginBottom: 0, overflow: 'hidden' }}
+                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              >
+                <DocumentCard doc={doc} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* Lazy Loaded Scanner Modal */}

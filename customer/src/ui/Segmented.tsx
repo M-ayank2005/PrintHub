@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
+import { motion } from 'framer-motion';
 
 export interface SegmentedOption<T extends string | number> {
   value: T;
@@ -14,6 +15,7 @@ interface SegmentedProps<T extends string | number> {
   value: T;
   onChange: (value: T) => void;
   size?: 'sm' | 'md';
+  name?: string;
 }
 
 export function Segmented<T extends string | number>({
@@ -21,8 +23,10 @@ export function Segmented<T extends string | number>({
   value,
   onChange,
   size = 'md',
+  name,
 }: SegmentedProps<T>) {
-  const activeIndex = options.findIndex((o) => o.value === value);
+  const generatedId = useId();
+  const groupId = name || generatedId;
 
   return (
     <div
@@ -38,25 +42,6 @@ export function Segmented<T extends string | number>({
         minHeight: size === 'sm' ? '36px' : '42px',
       }}
     >
-      {/* Sliding background thumb */}
-      {activeIndex >= 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '4px',
-            bottom: '4px',
-            left: `calc(${activeIndex * (100 / options.length)}% + 4px)`,
-            width: `calc(${100 / options.length}% - 8px)`,
-            background: '#ffffff',
-            borderRadius: '10px',
-            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',
-            transition: 'left 0.2s var(--ease-spring)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-      )}
-
       {options.map((opt) => {
         const isActive = opt.value === value;
         return (
@@ -72,7 +57,6 @@ export function Segmented<T extends string | number>({
             style={{
               flex: 1,
               position: 'relative',
-              zIndex: 2,
               background: 'transparent',
               border: 'none',
               padding: size === 'sm' ? '6px 8px' : '8px 10px',
@@ -91,7 +75,21 @@ export function Segmented<T extends string | number>({
               whiteSpace: 'nowrap',
             }}
           >
-            {opt.label}
+            {isActive && (
+              <motion.div
+                layoutId={`segmented-thumb-${groupId}`}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: '#ffffff',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',
+                  zIndex: 1,
+                }}
+                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span style={{ position: 'relative', zIndex: 2 }}>{opt.label}</span>
           </button>
         );
       })}

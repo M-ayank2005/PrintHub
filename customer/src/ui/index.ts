@@ -9,3 +9,4 @@ export * from './Skeleton';
 export * from './IconTile';
 export * from './Portal';
 export * from './StepIndicator';
+export * from './MotionProvider';

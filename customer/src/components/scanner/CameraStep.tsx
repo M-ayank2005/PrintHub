@@ -14,6 +14,7 @@ import {
 import { ScannedPage } from './types';
 import { useCustomerStore } from '../../lib/store';
 import { translations } from '../../lib/i18n';
+import { motion } from 'framer-motion';
 
 interface CameraStepProps {
   pages: ScannedPage[];
@@ -595,10 +596,14 @@ export const CameraStep: React.FC<CameraStepProps> = ({
           zIndex: 10,
         }}
       >
-        {/* Left: Thumbnail of last page with page count badge */}
+        {/* Left: Thumbnail of last page with page count badge (flying spring into tray) */}
         <div style={{ minWidth: '56px' }}>
           {pages.length > 0 && lastPageThumb ? (
-            <button
+            <motion.button
+              key={lastPageThumb}
+              initial={{ scale: 2.2, y: -60, x: 40, opacity: 0 }}
+              animate={{ scale: 1, y: 0, x: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 26 }}
               type="button"
               onClick={onOpenPages}
               aria-label="View scanned pages"
@@ -640,7 +645,7 @@ export const CameraStep: React.FC<CameraStepProps> = ({
               >
                 {pages.length}
               </span>
-            </button>
+            </motion.button>
           ) : (
             <button
               type="button"

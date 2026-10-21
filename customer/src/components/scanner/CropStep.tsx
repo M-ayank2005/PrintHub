@@ -13,6 +13,7 @@ import { CropCoords, ScannerFilter } from './types';
 import { blobToImage, renderProcessedCanvas } from './processor';
 import { useCustomerStore } from '../../lib/store';
 import { translations } from '../../lib/i18n';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CropStepProps {
   blob: Blob;
@@ -710,31 +711,37 @@ export const CropStep: React.FC<CropStepProps> = ({
             </div>
 
             {/* Magnifier Loupe offset ~70px above touch finger during corner drag */}
-            {pointerPos && activeHandle && ['tl', 'tr', 'bl', 'br'].includes(activeHandle) && (
-              <div
-                style={{
-                  position: 'fixed',
-                  left: Math.max(16, Math.min(window.innerWidth - 106, pointerPos.x - 45)),
-                  top: Math.max(20, pointerPos.y - 110),
-                  width: '90px',
-                  height: '90px',
-                  borderRadius: '50%',
-                  border: '3px solid #6366f1',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
-                  overflow: 'hidden',
-                  background: '#000000',
-                  pointerEvents: 'none',
-                  zIndex: 99,
-                }}
-              >
-                <canvas
-                  ref={loupeCanvasRef}
-                  width={90}
-                  height={90}
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {pointerPos && activeHandle && ['tl', 'tr', 'bl', 'br'].includes(activeHandle) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  style={{
+                    position: 'fixed',
+                    left: Math.max(16, Math.min(window.innerWidth - 106, pointerPos.x - 45)),
+                    top: Math.max(20, pointerPos.y - 110),
+                    width: '90px',
+                    height: '90px',
+                    borderRadius: '50%',
+                    border: '3px solid #6366f1',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                    overflow: 'hidden',
+                    background: '#000000',
+                    pointerEvents: 'none',
+                    zIndex: 99,
+                  }}
+                >
+                  <canvas
+                    ref={loupeCanvasRef}
+                    width={90}
+                    height={90}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
       </div>

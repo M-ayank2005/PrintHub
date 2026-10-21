@@ -2,16 +2,16 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Portal } from './Portal';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X, AlertTriangle } from 'lucide-react';
 
 interface ToastItem {
   id: string;
   message: string;
-  type: 'info' | 'success' | 'error';
+  type: 'info' | 'success' | 'error' | 'warning';
 }
 
 interface ToastContextValue {
-  showToast: (message: string, type?: 'info' | 'success' | 'error') => void;
+  showToast: (message: string, type?: 'info' | 'success' | 'error' | 'warning') => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -19,7 +19,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
     const id = `toast_${Date.now()}_${Math.random()}`;
     setToasts((prev) => [...prev, { id, message, type }]);
 
@@ -56,6 +56,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           {toasts.map((toast) => {
             const isError = toast.type === 'error';
             const isSuccess = toast.type === 'success';
+            const isWarning = toast.type === 'warning';
 
             return (
               <div
@@ -67,9 +68,9 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                   gap: '10px',
                   padding: '12px 16px',
                   borderRadius: '16px',
-                  background: isError ? '#fff1f2' : isSuccess ? '#ecfdf5' : '#ffffff',
-                  border: `1.5px solid ${isError ? '#fecdd3' : isSuccess ? '#a7f3d0' : '#e2e8f0'}`,
-                  color: isError ? '#9f1239' : isSuccess ? '#065f46' : 'var(--text-main)',
+                  background: isError ? '#fff1f2' : isSuccess ? '#ecfdf5' : isWarning ? '#fffbeb' : '#ffffff',
+                  border: `1.5px solid ${isError ? '#fecdd3' : isSuccess ? '#a7f3d0' : isWarning ? '#fde68a' : '#e2e8f0'}`,
+                  color: isError ? '#9f1239' : isSuccess ? '#065f46' : isWarning ? '#92400e' : 'var(--text-main)',
                   boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
                   fontSize: '0.86rem',
                   fontWeight: 600,
@@ -80,6 +81,8 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                   <AlertCircle size={18} color="#e11d48" style={{ flexShrink: 0 }} />
                 ) : isSuccess ? (
                   <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0 }} />
+                ) : isWarning ? (
+                  <AlertTriangle size={18} color="#d97706" style={{ flexShrink: 0 }} />
                 ) : (
                   <Info size={18} color="#4f46e5" style={{ flexShrink: 0 }} />
                 )}
