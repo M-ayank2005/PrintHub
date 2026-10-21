@@ -174,8 +174,9 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
 
   // Start camera on modal open
   const startCamera = useCallback(
-    async (facing: 'environment' | 'user') => {
+    async (facing?: 'environment' | 'user') => {
       stopCamera();
+      const targetFacing = facing === 'user' || facing === 'environment' ? facing : facingMode;
 
       if (!navigator?.mediaDevices?.getUserMedia) {
         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
@@ -195,7 +196,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
         try {
           mediaStream = await navigator.mediaDevices.getUserMedia({
             video: {
-              facingMode: { ideal: facing },
+              facingMode: { ideal: targetFacing },
               width: { ideal: 1280 },
               height: { ideal: 720 },
             },
@@ -241,7 +242,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
         }
       }
     },
-    [stopCamera]
+    [stopCamera, facingMode]
   );
 
   // QR Detection loop - throttled to ~10 checks/s with downscaling to ~640px
@@ -668,7 +669,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
                 </p>
                 <button
                   type="button"
-                  onClick={startCamera}
+                  onClick={() => startCamera()}
                   className="btn-primary"
                   style={{
                     padding: '8px 16px',
