@@ -74,8 +74,9 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const hasHandledSuccessRef = useRef(false);
 
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
@@ -121,26 +122,36 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
       cancelAnimationFrame(animFrameIdRef.current);
       animFrameIdRef.current = null;
     }
-    if (stream) {
-      stream.getTracks().forEach((track) => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
         try {
           track.stop();
         } catch (e) {
           // ignore
         }
       });
-      setStream(null);
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setIsVideoPlaying(false);
     setTorchOn(false);
-  }, [stream]);
+  }, []);
 
   // Handle successful QR detection
   const handleSuccess = useCallback(
     (slug: string) => {
-      if (detectedSlug || scanSuccess) return;
+      if (hasHandledSuccessRef.current) return;
+      hasHandledSuccessRef.current = true;
+      scanLoopActiveRef.current = false;
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+        animFrameIdRef.current = null;
+      }
       setDetectedSlug(slug);
       setScanSuccess(true);
+      stopCamera();
 
       // Haptic feedback
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -151,7 +162,6 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
         }
       }
       playSuccessChime();
-      stopCamera();
 
       // Show green check animation briefly then navigate
       setTimeout(() => {
@@ -159,88 +169,80 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
         onClose();
       }, 650);
     },
-    [detectedSlug, scanSuccess, playSuccessChime, stopCamera, router, onClose]
+    [playSuccessChime, stopCamera, router, onClose]
   );
 
   // Start camera on modal open
-  const startCamera = useCallback(async () => {
-    if (!navigator?.mediaDevices?.getUserMedia) {
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        setCameraStatus('insecure');
-      } else {
-        setCameraStatus('no_camera');
+  const startCamera = useCallback(
+    async (facing: 'environment' | 'user') => {
+      stopCamera();
+
+      if (!navigator?.mediaDevices?.getUserMedia) {
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          setCameraStatus('insecure');
+        } else {
+          setCameraStatus('no_camera');
+        }
+        return;
       }
-      return;
-    }
 
-    setCameraStatus('starting');
-    setIsVideoPlaying(false);
-    setManualError(null);
+      setCameraStatus('starting');
+      setIsVideoPlaying(false);
+      setManualError(null);
 
-    try {
-      let mediaStream: MediaStream;
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        });
-      } catch (e) {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+        let mediaStream: MediaStream;
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: facing },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            audio: false,
+          });
+        } catch (e) {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
+
+        streamRef.current = mediaStream;
+        setCameraStatus('live');
+
+        // Check torch capability
+        const videoTrack = mediaStream.getVideoTracks()[0];
+        const capabilities: any = videoTrack?.getCapabilities ? videoTrack.getCapabilities() : {};
+        setHasTorch(!!capabilities.torch);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.muted = true;
+          videoRef.current.defaultMuted = true;
+          videoRef.current.playsInline = true;
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch((err) => {
+              if (err.name !== 'AbortError') {
+                console.warn('Video play error:', err);
+              }
+            });
+          }
+        }
+      } catch (err: any) {
+        console.warn('Camera stream error:', err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setCameraStatus('permission_denied');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          setCameraStatus('no_camera');
+        } else {
+          setCameraStatus('error');
+        }
       }
-
-      setStream(mediaStream);
-      setCameraStatus('live');
-
-      // Check torch capability
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      const capabilities: any = videoTrack?.getCapabilities ? videoTrack.getCapabilities() : {};
-      setHasTorch(!!capabilities.torch);
-    } catch (err: any) {
-      console.warn('Camera stream error:', err);
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setCameraStatus('permission_denied');
-      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setCameraStatus('no_camera');
-      } else {
-        setCameraStatus('error');
-      }
-    }
-  }, [facingMode]);
-
-  // Attach stream to always-rendered <video> whenever stream updates
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !stream) return;
-
-    let cancelled = false;
-    video.srcObject = stream;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-
-    const onPlaying = () => {
-      if (!cancelled) {
-        setIsVideoPlaying(true);
-      }
-    };
-
-    video.addEventListener('playing', onPlaying);
-    video.play().catch((err) => {
-      console.warn('Video play interrupted:', err);
-    });
-
-    return () => {
-      cancelled = true;
-      video.removeEventListener('playing', onPlaying);
-    };
-  }, [stream]);
+    },
+    [stopCamera]
+  );
 
   // QR Detection loop - throttled to ~10 checks/s with downscaling to ~640px
   useEffect(() => {
@@ -341,6 +343,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
   // Modal open/close lifecycle, scroll locking & Android back button
   useEffect(() => {
     if (!isOpen) {
+      hasHandledSuccessRef.current = false;
       stopCamera();
       setDetectedSlug(null);
       setScanSuccess(false);
@@ -348,13 +351,15 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
       return;
     }
 
+    hasHandledSuccessRef.current = false;
+
     // Lock body scroll
     const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevBodyOverflow = document.body.style.overflow;
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
-    // Push history state so Android back button closes modal
+    // Push history state so Android back button closes modal (pushed once on open)
     window.history.pushState({ qrModalOpen: true }, '');
     const handlePopState = () => {
       onClose();
@@ -369,7 +374,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('keydown', handleKeyDown);
 
-    startCamera();
+    startCamera(facingMode);
 
     return () => {
       document.documentElement.style.overflow = prevHtmlOverflow;
@@ -378,12 +383,12 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
       window.removeEventListener('keydown', handleKeyDown);
       stopCamera();
     };
-  }, [isOpen, startCamera, stopCamera, onClose]);
+  }, [isOpen, onClose, startCamera, stopCamera, facingMode]);
 
   // Toggle torch / flash
   const toggleTorch = async () => {
-    if (!stream || !hasTorch) return;
-    const track = stream.getVideoTracks()[0];
+    if (!streamRef.current || !hasTorch) return;
+    const track = streamRef.current.getVideoTracks()[0];
     try {
       const nextTorch = !torchOn;
       await (track as any).applyConstraints({
@@ -397,7 +402,6 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
 
   // Flip front/back camera
   const flipCamera = () => {
-    stopCamera();
     setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
   };
 
@@ -605,6 +609,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
               autoPlay
               playsInline
               muted
+              onPlaying={() => setIsVideoPlaying(true)}
               style={{
                 position: 'absolute',
                 inset: 0,
