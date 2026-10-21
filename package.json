@@ -5,7 +5,7 @@
   "description": "QR Print Platform Monorepo",
   "packageManager": "pnpm@9.15.4",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.0.0 <23.0.0"
   },
   "scripts": {
     "build": "pnpm build:shared && pnpm build:backend && pnpm build:customer",
