@@ -21,6 +21,7 @@ export interface IBusiness extends Document {
   email: string;
   passwordHash: string;
   shopName: string;
+  address?: string;
   slug: string;
   upiId?: string;
   payeeName?: string;
@@ -64,6 +65,7 @@ const BusinessSchema = new Schema<IBusiness>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     passwordHash: { type: String, required: true },
     shopName: { type: String, required: true, trim: true },
+    address: { type: String, trim: true },
     slug: { type: String, required: true, unique: true, index: true },
     upiId: { type: String, trim: true },
     payeeName: { type: String, trim: true },

@@ -20,7 +20,7 @@ export default function PrintersPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastScanned, setLastScanned] = useState<Date | null>(null);
 
-  const fetchPrinters = async () => {
+  const fetchPrinters = async (force = false) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -28,7 +28,7 @@ export default function PrintersPage() {
       if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
         try {
           const { invoke } = await import('@tauri-apps/api/core');
-          const tauriPrinters = await invoke<any[]>('get_system_printers');
+          const tauriPrinters = await invoke<any[]>('get_system_printers', { forceRefresh: force });
           if (tauriPrinters && tauriPrinters.length > 0) {
             list = tauriPrinters.map((p) => ({
               name: p.name,
@@ -70,7 +70,10 @@ export default function PrintersPage() {
   };
 
   useEffect(() => {
-    fetchPrinters();
+    // Only query on initial load if not already populated
+    if (printers.length === 0) {
+      fetchPrinters(false);
+    }
   }, []);
 
   const handleSetDefault = (name: string) => {
@@ -92,7 +95,7 @@ export default function PrintersPage() {
         </div>
 
         <button
-          onClick={fetchPrinters}
+          onClick={() => fetchPrinters(true)}
           disabled={isLoading}
           className="biz-btn-secondary"
           style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px' }}
@@ -170,7 +173,7 @@ export default function PrintersPage() {
           <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '480px', margin: '0 auto 20px auto' }}>
             No printers were found in your Windows print spooler. Make sure the Windows Print Spooler service is running.
           </p>
-          <button onClick={fetchPrinters} className="biz-btn-primary">
+          <button onClick={() => fetchPrinters(true)} className="biz-btn-primary">
             Retry Scan
           </button>
         </div>
@@ -255,8 +258,9 @@ export default function PrintersPage() {
                             fontSize: '0.7rem',
                             padding: '2px 8px',
                             borderRadius: '6px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            color: '#cbd5e1',
+                            background: 'var(--btn-secondary-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border-subtle)',
                           }}
                         >
                           Windows Default
@@ -283,8 +287,9 @@ export default function PrintersPage() {
                           fontSize: '0.75rem',
                           padding: '2px 8px',
                           borderRadius: '6px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          color: p.isColor ? '#06b6d4' : '#94a3b8',
+                          background: 'var(--btn-secondary-bg)',
+                          color: p.isColor ? '#06b6d4' : 'var(--text-secondary)',
+                          border: '1px solid var(--border-subtle)',
                         }}
                       >
                         {p.isColor ? 'Colour Supported' : 'Monochrome Only'}
@@ -295,14 +300,15 @@ export default function PrintersPage() {
                           fontSize: '0.75rem',
                           padding: '2px 8px',
                           borderRadius: '6px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          color: p.isDuplex ? '#818cf8' : '#94a3b8',
+                          background: 'var(--btn-secondary-bg)',
+                          color: p.isDuplex ? 'var(--accent-indigo)' : 'var(--text-secondary)',
+                          border: '1px solid var(--border-subtle)',
                         }}
                       >
                         {p.isDuplex ? 'Duplex / Double-sided' : 'Single-side Only'}
                       </span>
 
-                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                         Sizes: {p.paperSizes?.join(', ') || 'A4'}
                       </span>
                     </div>

@@ -297,8 +297,8 @@ export default function RequestsPage() {
       {pendingJobs.length === 0 ? (
         <div className="biz-card" style={{ padding: '60px 20px', textAlign: 'center' }}>
           <Inbox size={48} color="#64748b" style={{ margin: '0 auto 16px auto' }} />
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px' }}>No Pending Requests</h3>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>No Pending Requests</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
             When a customer scans your counter QR poster and submits an order, it will appear here immediately.
           </p>
         </div>
@@ -317,7 +317,7 @@ export default function RequestsPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  borderLeft: '4px solid #6366f1',
+                  borderLeft: '4px solid var(--accent-indigo)',
                 }}
               >
                 {/* Left: Code, Name, Document Summary */}
@@ -327,7 +327,7 @@ export default function RequestsPage() {
                       fontFamily: 'var(--font-mono)',
                       fontSize: '1.8rem',
                       fontWeight: 800,
-                      color: '#818cf8',
+                      color: 'var(--accent-indigo)',
                       letterSpacing: '0.05em',
                       minWidth: '100px',
                     }}
@@ -354,7 +354,7 @@ export default function RequestsPage() {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       {job.totals?.documents} documents • {job.totals?.pages} pages ({job.totals?.sheets} sheets){' '}
                       • {job.totals?.bwSheets > 0 ? `${job.totals.bwSheets} B&W sheets` : ''}{' '}
                       {job.totals?.colorSheets > 0 ? `${job.totals.colorSheets} Colour sheets` : ''}
@@ -365,7 +365,7 @@ export default function RequestsPage() {
                 {/* Right: Total Price & 1-Click Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Order Total</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Order Total</span>
                     <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>
                       ₹{priceRupees}
                     </span>

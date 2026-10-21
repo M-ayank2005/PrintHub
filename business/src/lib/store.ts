@@ -18,6 +18,9 @@ export interface BusinessStoreState {
   toggleDND: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
   toggleTheme: () => void;
+  recentJobs: any[];
+  setRecentJobs: (jobs: any[]) => void;
+  addOrUpdateRecentJob: (job: any) => void;
   addJob: (job: any) => void;
   updateJob: (jobId: string, status: string, paymentState?: string) => void;
   dismissToast: (jobId: string) => void;
@@ -42,6 +45,7 @@ export const useBusinessStore = create<BusinessStoreState>((set) => ({
   business: null,
   pendingJobs: [],
   toastJobs: [],
+  recentJobs: [],
   printers: [],
   selectedPrinter: getInitialPrinter(),
   isDND: false,
@@ -52,6 +56,22 @@ export const useBusinessStore = create<BusinessStoreState>((set) => ({
   setConnected: (isConnected) => set({ isConnected }),
   setPrinters: (printers) => set({ printers }),
   setPendingJobs: (pendingJobs) => set({ pendingJobs }),
+  setRecentJobs: (recentJobs) => set({ recentJobs }),
+
+  addOrUpdateRecentJob: (job) =>
+    set((state) => {
+      const jobId = job._id || job.id;
+      const existingIndex = state.recentJobs.findIndex((j) => (j._id || j.id) === jobId);
+      if (existingIndex >= 0) {
+        const updated = [...state.recentJobs];
+        updated[existingIndex] = { ...updated[existingIndex], ...job, _id: jobId };
+        return { recentJobs: updated };
+      }
+      return {
+        recentJobs: [{ ...job, _id: jobId }, ...state.recentJobs].slice(0, 30),
+      };
+    }),
+
   setSelectedPrinter: (selectedPrinter) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('printhub_selected_printer', selectedPrinter);
@@ -91,6 +111,33 @@ export const useBusinessStore = create<BusinessStoreState>((set) => ({
   updateJob: (jobId, status, paymentState) =>
     set((state) => {
       const isTerminal = ['PRINTED', 'REJECTED', 'EXPIRED', 'CANCELLED'].includes(status);
+      const targetJob = state.pendingJobs.find((j) => j.id === jobId);
+
+      // Also sync to recentJobs so it instantly reflects in the Dashboard
+      let nextRecent = [...state.recentJobs];
+      const recentIdx = nextRecent.findIndex((j) => (j._id || j.id) === jobId);
+      if (recentIdx >= 0) {
+        nextRecent[recentIdx] = {
+          ...nextRecent[recentIdx],
+          status,
+          ...(paymentState && { paymentState }),
+        };
+      } else if (targetJob) {
+        nextRecent = [
+          {
+            _id: jobId,
+            code: targetJob.code,
+            customerName: targetJob.customerName,
+            totals: targetJob.totals,
+            paymentMode: targetJob.paymentMode,
+            paymentState: paymentState || targetJob.paymentState || 'PENDING',
+            status,
+            createdAt: targetJob.createdAt || new Date().toISOString(),
+          },
+          ...nextRecent,
+        ].slice(0, 30);
+      }
+
       return {
         pendingJobs: isTerminal
           ? state.pendingJobs.filter((j) => j.id !== jobId)
@@ -98,6 +145,7 @@ export const useBusinessStore = create<BusinessStoreState>((set) => ({
               j.id === jobId ? { ...j, status, ...(paymentState && { paymentState }) } : j
             ),
         toastJobs: state.toastJobs.filter((j) => j.id !== jobId),
+        recentJobs: nextRecent,
       };
     }),
 

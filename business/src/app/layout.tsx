@@ -157,7 +157,12 @@ export default function BusinessLayout({
         // Show native Windows Toast Notification & Notification Center entry
         showNativeNotification(
           `PrintHub: New Request #${job.code || ''}`,
-          `${job.customerName || 'Customer'} • ${job.totals?.pages || 1} pages (${job.totals?.sheets || 1} sheets) • ₹${((job.totals?.pricePaise || 0) / 100).toFixed(2)}`
+          `${job.customerName || 'Customer'} • ${job.totals?.pages || 1} pages (${job.totals?.sheets || 1} sheets) • ₹${((job.totals?.pricePaise || 0) / 100).toFixed(2)}`,
+          () => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/requests';
+            }
+          }
         );
         // Play gentle audio chime if not DND
         if (!isDND && typeof window !== 'undefined' && window.AudioContext) {

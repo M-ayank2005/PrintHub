@@ -31,6 +31,22 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    api.getProfile()
+      .then((res) => {
+        if (res?.business) {
+          setBusiness(res.business);
+          setShopName(res.business.shopName || '');
+          setAddress(res.business.address || '');
+          setUpiId(res.business.upiId || '');
+          setPayeeName(res.business.payeeName || '');
+          setAcceptPaused(!!res.business.acceptPaused);
+          setPrintBeforePayment(res.business.printBeforePayment !== false);
+        }
+      })
+      .catch((e) => console.warn('Failed to load profile in settings:', e));
+  }, []);
+
+  useEffect(() => {
     if (business) {
       setShopName(business.shopName || '');
       setAddress(business.address || '');
@@ -56,14 +72,16 @@ export default function SettingsPage() {
     try {
       const res = await api.updateProfile({
         shopName: shopName.trim(),
-        address: address.trim() || undefined,
+        address: address.trim(),
         upiId: upiId.trim() || null,
         payeeName: payeeName.trim() || undefined,
         acceptPaused,
         printBeforePayment,
       });
 
-      setBusiness(res.business);
+      if (res?.business) {
+        setBusiness(res.business);
+      }
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2500);
     } catch (err: any) {

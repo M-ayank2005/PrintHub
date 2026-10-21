@@ -1,14 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useBusinessStore } from '../lib/store';
 import { api } from '../lib/api';
-import { Printer, X, Check, FileText, Ban } from 'lucide-react';
+import { Printer, X, Ban, ArrowUpRight } from 'lucide-react';
 
 export const ToastStack: React.FC = () => {
+  const router = useRouter();
   const { toastJobs, dismissToast, updateJob } = useBusinessStore();
 
-  const handleAccept = async (jobId: string) => {
+  // Auto-dismiss toasts after 12 seconds
+  useEffect(() => {
+    if (toastJobs.length > 0) {
+      const timers = toastJobs.map((job) =>
+        setTimeout(() => {
+          dismissToast(job.id);
+        }, 12000)
+      );
+      return () => timers.forEach((t) => clearTimeout(t));
+    }
+  }, [toastJobs, dismissToast]);
+
+  const handleAccept = async (jobId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await api.acceptJob(jobId);
       updateJob(jobId, 'ACCEPTED');
@@ -22,22 +37,30 @@ export const ToastStack: React.FC = () => {
         try {
           await api.updateJobStatus(jobId, 'PRINTED');
           updateJob(jobId, 'PRINTED');
-        } catch (e) {
-          console.error(e);
+        } catch (err) {
+          console.error(err);
         }
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
       alert(err.message || 'Failed to accept job');
     }
   };
 
-  const handleReject = async (jobId: string) => {
+  const handleReject = async (jobId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const reason = prompt('Optional rejection reason (or leave empty):', 'Shop is busy');
+    if (reason === null) return;
     try {
-      await api.rejectJob(jobId, 'Shopkeeper is currently busy');
+      await api.rejectJob(jobId, reason || 'Shopkeeper is currently busy');
       updateJob(jobId, 'REJECTED');
     } catch (err: any) {
       alert(err.message || 'Failed to reject job');
     }
+  };
+
+  const handleCardClick = (jobId: string) => {
+    router.push('/requests');
+    dismissToast(jobId);
   };
 
   if (toastJobs.length === 0) return null;
@@ -45,9 +68,18 @@ export const ToastStack: React.FC = () => {
   return (
     <div className="toast-stack">
       {toastJobs.map((job) => {
-        const priceRupees = (job.totals.pricePaise / 100).toFixed(2);
+        const priceRupees = ((job.totals?.pricePaise || 0) / 100).toFixed(2);
         return (
-          <div key={job.id} className="toast-item">
+          <div
+            key={job.id}
+            className="toast-item"
+            onClick={() => handleCardClick(job.id)}
+            style={{
+              cursor: 'pointer',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            }}
+            title="Click to open incoming print request"
+          >
             {/* Header: Code and Close */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -56,7 +88,7 @@ export const ToastStack: React.FC = () => {
                     fontFamily: 'var(--font-mono)',
                     fontSize: '1.25rem',
                     fontWeight: 800,
-                    color: '#818cf8',
+                    color: 'var(--accent-indigo)',
                     letterSpacing: '0.05em',
                   }}
                 >
@@ -67,17 +99,41 @@ export const ToastStack: React.FC = () => {
                     fontSize: '0.7rem',
                     padding: '2px 8px',
                     borderRadius: '6px',
-                    background: job.paymentMode === 'UPI' ? 'rgba(6, 182, 212, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                    color: job.paymentMode === 'UPI' ? '#06b6d4' : '#f59e0b',
+                    background: job.paymentMode === 'UPI' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                    color: job.paymentMode === 'UPI' ? 'var(--accent-cyan)' : 'var(--accent-amber)',
                     fontWeight: 700,
                   }}
                 >
                   {job.paymentMode === 'UPI' ? 'UPI' : 'COUNTER'}
                 </span>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color: 'var(--accent-indigo)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    fontWeight: 600,
+                  }}
+                >
+                  Open <ArrowUpRight size={12} />
+                </span>
               </div>
+
               <button
-                onClick={() => dismissToast(job.id)}
-                style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissToast(job.id);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                }}
+                title="Dismiss toast"
               >
                 <X size={16} />
               </button>
@@ -85,37 +141,40 @@ export const ToastStack: React.FC = () => {
 
             {/* Customer & Job details */}
             <div style={{ marginBottom: '12px' }}>
-              <strong style={{ fontSize: '0.95rem', color: '#ffffff', display: 'block' }}>
-                {job.customerName}
+              <strong style={{ fontSize: '0.98rem', color: 'var(--text-primary)', display: 'block' }}>
+                {job.customerName || 'Customer'}
               </strong>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                {job.totals.pages} pages ({job.totals.sheets} sheets) • {job.totals.bwSheets > 0 ? `${job.totals.bwSheets} B&W` : ''}{' '}
-                {job.totals.colorSheets > 0 ? `${job.totals.colorSheets} Colour` : ''}
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                {job.totals?.pages || 1} pages ({job.totals?.sheets || 1} sheets)
+                {job.totals?.bwSheets > 0 ? ` • ${job.totals.bwSheets} B&W` : ''}
+                {job.totals?.colorSheets > 0 ? ` • ${job.totals.colorSheets} Colour` : ''}
               </span>
             </div>
 
             {/* Total Price and Action Buttons */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>
                 ₹{priceRupees}
               </span>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
-                  onClick={() => handleReject(job.id)}
+                  type="button"
+                  onClick={(e) => handleReject(job.id, e)}
                   className="biz-btn-danger"
-                  style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                  style={{ padding: '7px 12px', fontSize: '0.82rem' }}
                 >
-                  <Ban size={14} />
+                  <Ban size={13} />
                   Reject
                 </button>
 
                 <button
-                  onClick={() => handleAccept(job.id)}
+                  type="button"
+                  onClick={(e) => handleAccept(job.id, e)}
                   className="biz-btn-success"
-                  style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  style={{ padding: '7px 14px', fontSize: '0.82rem' }}
                 >
-                  <Printer size={15} />
+                  <Printer size={14} />
                   Accept & Print
                 </button>
               </div>

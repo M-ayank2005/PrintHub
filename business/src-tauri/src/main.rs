@@ -3,6 +3,10 @@
 
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use tauri::{
   menu::{Menu, MenuItem},
   tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -29,10 +33,30 @@ struct RawWinPrinter {
   work_offline: Option<bool>,
 }
 
+// Global printer cache to eliminate delay when switching tabs
+static PRINTER_CACHE: Mutex<Option<(Instant, Vec<PrinterInfo>)>> = Mutex::new(None);
+
 #[tauri::command]
-fn get_system_printers() -> Vec<PrinterInfo> {
-  // Query Windows spooler via PowerShell CIM
-  let output = Command::new("powershell")
+fn get_system_printers(force_refresh: Option<bool>) -> Vec<PrinterInfo> {
+  let bypass_cache = force_refresh.unwrap_or(false);
+
+  // Return from cache if fresh (within 20s) and not forced
+  if !bypass_cache {
+    if let Ok(guard) = PRINTER_CACHE.lock() {
+      if let Some((cached_at, ref printers)) = *guard {
+        if cached_at.elapsed() < Duration::from_secs(20) && !printers.is_empty() {
+          return printers.clone();
+        }
+      }
+    }
+  }
+
+  // Windows CREATE_NO_WINDOW flag (0x08000000) completely suppresses the flashing console window
+  let mut cmd = Command::new("powershell");
+  #[cfg(target_os = "windows")]
+  cmd.creation_flags(0x08000000);
+
+  let output = cmd
     .args(["-NoProfile", "-NonInteractive", "-Command", "@(Get-CimInstance Win32_Printer | Select-Object Name, Default, WorkOffline) | ConvertTo-Json"])
     .output();
 
@@ -41,7 +65,7 @@ fn get_system_printers() -> Vec<PrinterInfo> {
       let stdout = String::from_utf8_lossy(&out.stdout);
       if let Ok(raw_list) = serde_json::from_str::<Vec<RawWinPrinter>>(&stdout) {
         if !raw_list.is_empty() {
-          return raw_list
+          let list: Vec<PrinterInfo> = raw_list
             .into_iter()
             .map(|p| PrinterInfo {
               name: p.name,
@@ -52,13 +76,17 @@ fn get_system_printers() -> Vec<PrinterInfo> {
               paper_sizes: vec!["A4".to_string(), "A3".to_string()],
             })
             .collect();
+
+          if let Ok(mut guard) = PRINTER_CACHE.lock() {
+            *guard = Some((Instant::now(), list.clone()));
+          }
+          return list;
         }
       }
     }
   }
 
-  // Fallback default
-  vec![
+  let fallback = vec![
     PrinterInfo {
       name: "Microsoft Print to PDF".to_string(),
       is_default: true,
@@ -67,7 +95,22 @@ fn get_system_printers() -> Vec<PrinterInfo> {
       is_duplex: true,
       paper_sizes: vec!["A4".to_string(), "A3".to_string()],
     },
-  ]
+  ];
+
+  if let Ok(mut guard) = PRINTER_CACHE.lock() {
+    *guard = Some((Instant::now(), fallback.clone()));
+  }
+
+  fallback
+}
+
+#[tauri::command]
+fn focus_app_window(app: tauri::AppHandle) {
+  if let Some(window) = app.get_webview_window("main") {
+    let _ = window.show();
+    let _ = window.unminimize();
+    let _ = window.set_focus();
+  }
 }
 
 #[tauri::command]
@@ -87,7 +130,11 @@ async fn print_pdf_silent(printer: String, pdf_path: String, copies: u32, is_dup
     printer, pdf_path, copies, is_duplex, is_color
   );
 
-  let result = Command::new("powershell")
+  let mut cmd = Command::new("powershell");
+  #[cfg(target_os = "windows")]
+  cmd.creation_flags(0x08000000);
+
+  let result = cmd
     .args([
       "-NoProfile",
       "-NonInteractive",
@@ -196,7 +243,7 @@ fn main() {
         let _ = window.hide();
       }
     })
-    .invoke_handler(tauri::generate_handler![get_system_printers, print_pdf_silent, show_desktop_notification])
+    .invoke_handler(tauri::generate_handler![get_system_printers, print_pdf_silent, show_desktop_notification, focus_app_window])
     .run(tauri::generate_context!())
     .expect("error while running PrintHub desktop application");
 }
