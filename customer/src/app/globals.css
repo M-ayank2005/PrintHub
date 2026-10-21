@@ -1,10 +1,7 @@
 :root {
-  --font-main: var(--font-main, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  --font-mono: var(--font-mono, 'JetBrains Mono', monospace);
-
   /* Premium Light Mode Palette for Customer Mobile Experience */
   --bg-canvas: #f8fafc;
-  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-card: rgba(255, 255, 255, 0.96);
   --bg-card-hover: #ffffff;
   --bg-surface-subtle: #f1f5f9;
   --bg-input: #ffffff;
@@ -38,12 +35,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  font-family: var(--font-main, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
 body {
-  font-family: var(--font-main);
+  font-family: var(--font-main, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   background-color: var(--bg-canvas);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Glassmorphic Cards (Light Theme) */

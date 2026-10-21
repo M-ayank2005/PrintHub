@@ -143,20 +143,52 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (idealErr) {
+        // Fallback to basic video constraints if ideal resolution/facingMode is rejected
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
 
       streamRef.current = stream;
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true');
-        await videoRef.current.play();
+        const video = videoRef.current;
+        video.srcObject = stream;
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('muted', 'true');
+        video.setAttribute('autoplay', 'true');
+
+        // Ensure video metadata is loaded before starting playback
+        await new Promise<void>((resolve) => {
+          if (video.readyState >= 2) {
+            resolve();
+          } else {
+            video.onloadeddata = () => resolve();
+            video.onloadedmetadata = () => resolve();
+            // Safety timeout after 500ms
+            setTimeout(resolve, 500);
+          }
+        });
+
+        await video.play().catch((playErr) => {
+          console.warn('Video play prevented, attempting muted play:', playErr);
+          video.muted = true;
+          return video.play();
+        });
       }
 
       setCameraActive(true);
@@ -454,8 +486,8 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
           style={{
             position: 'relative',
             width: '100%',
-            height: '280px',
-            background: '#090d16',
+            height: '290px',
+            background: '#0f172a',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
@@ -466,89 +498,123 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
             <>
               <video
                 ref={videoRef}
+                autoPlay
+                playsInline
+                muted
                 style={{
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
+                  filter: 'contrast(1.05) brightness(1.04)',
                 }}
               />
 
-              {/* Scanning Reticle & Laser */}
+              {/* Modern Translucent Mask & Scanning Frame */}
               <div
                 style={{
                   position: 'absolute',
-                  width: '210px',
-                  height: '210px',
-                  border: '2px solid rgba(255, 255, 255, 0.4)',
-                  borderRadius: '16px',
-                  boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                  inset: 0,
                   pointerEvents: 'none',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  background: 'radial-gradient(circle at center, transparent 130px, rgba(15, 23, 42, 0.35) 150px)',
                 }}
               >
-                {/* 4 Corner Accents */}
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-2px',
-                    left: '-2px',
-                    width: '20px',
-                    height: '20px',
-                    borderTop: '4px solid #4f46e5',
-                    borderLeft: '4px solid #4f46e5',
-                    borderTopLeftRadius: '14px',
-                  }}
-                />
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-2px',
-                    right: '-2px',
-                    width: '20px',
-                    height: '20px',
-                    borderTop: '4px solid #4f46e5',
-                    borderRight: '4px solid #4f46e5',
-                    borderTopRightRadius: '14px',
-                  }}
-                />
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    left: '-2px',
-                    width: '20px',
-                    height: '20px',
-                    borderBottom: '4px solid #4f46e5',
-                    borderLeft: '4px solid #4f46e5',
-                    borderBottomLeftRadius: '14px',
-                  }}
-                />
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    right: '-2px',
-                    width: '20px',
-                    height: '20px',
-                    borderBottom: '4px solid #4f46e5',
-                    borderRight: '4px solid #4f46e5',
-                    borderBottomRightRadius: '14px',
-                  }}
-                />
-
-                {/* Animated Horizontal Laser Scanner Line */}
+                {/* Scanning Reticle Box */}
                 <div
                   style={{
-                    position: 'absolute',
-                    width: '94%',
-                    height: '3px',
-                    background: 'linear-gradient(90deg, transparent, #818cf8, #4f46e5, #818cf8, transparent)',
-                    boxShadow: '0 0 12px #6366f1, 0 0 4px #818cf8',
-                    animation: 'qrLaserScan 2s infinite ease-in-out',
+                    position: 'relative',
+                    width: '210px',
+                    height: '210px',
+                    border: '1.5px solid rgba(255, 255, 255, 0.5)',
+                    borderRadius: '20px',
+                    boxShadow: '0 0 25px rgba(79, 70, 229, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  {/* 4 Crisp Glowing Neon Corners */}
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-2px',
+                      left: '-2px',
+                      width: '24px',
+                      height: '24px',
+                      borderTop: '4px solid #6366f1',
+                      borderLeft: '4px solid #6366f1',
+                      borderTopLeftRadius: '16px',
+                      filter: 'drop-shadow(0 0 4px #4f46e5)',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-2px',
+                      right: '-2px',
+                      width: '24px',
+                      height: '24px',
+                      borderTop: '4px solid #6366f1',
+                      borderRight: '4px solid #6366f1',
+                      borderTopRightRadius: '16px',
+                      filter: 'drop-shadow(0 0 4px #4f46e5)',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: '-2px',
+                      left: '-2px',
+                      width: '24px',
+                      height: '24px',
+                      borderBottom: '4px solid #6366f1',
+                      borderLeft: '4px solid #6366f1',
+                      borderBottomLeftRadius: '16px',
+                      filter: 'drop-shadow(0 0 4px #4f46e5)',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: '-2px',
+                      right: '-2px',
+                      width: '24px',
+                      height: '24px',
+                      borderBottom: '4px solid #6366f1',
+                      borderRight: '4px solid #6366f1',
+                      borderBottomRightRadius: '16px',
+                      filter: 'drop-shadow(0 0 4px #4f46e5)',
+                    }}
+                  />
+
+                  {/* Animated Horizontal Laser Scanner Line */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      width: '92%',
+                      height: '3px',
+                      background: 'linear-gradient(90deg, transparent, #818cf8, #4f46e5, #818cf8, transparent)',
+                      boxShadow: '0 0 14px #6366f1, 0 0 5px #818cf8',
+                      animation: 'qrLaserScan 2s infinite ease-in-out',
+                    }}
+                  />
+                </div>
+
+                <span
+                  style={{
+                    marginTop: '10px',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  Align counter QR code within box
+                </span>
               </div>
 
               {/* Viewfinder Controls (Flip & Torch) */}
