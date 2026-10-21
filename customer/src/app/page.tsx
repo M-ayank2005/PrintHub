@@ -39,9 +39,10 @@ export default function HomePage() {
       }}
       className="animate-fade-in"
     >
-      {/* Hero Ambient Glow & Top Badge */}
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '30px', background: 'rgba(79, 70, 229, 0.08)', border: '1px solid rgba(79, 70, 229, 0.15)', marginBottom: '18px' }}>
-        <span className="pulse-online" style={{ width: '8px', height: '8px' }} />
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '6px 14px', borderRadius: '30px', background: 'rgba(79, 70, 229, 0.08)', border: '1px solid rgba(79, 70, 229, 0.15)', marginBottom: '18px' }}>
+        <span className="pulse-online-wrapper">
+          <span className="pulse-online" />
+        </span>
         <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4338ca', letterSpacing: '0.02em' }}>
           Self-Service Print Station
         </span>

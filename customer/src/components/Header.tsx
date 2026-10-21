@@ -56,17 +56,20 @@ export const Header: React.FC<HeaderProps> = ({ shopName, isAvailable = true }) 
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '4px',
                     fontSize: '0.74rem',
                     color: '#059669',
                     fontWeight: 700,
                     background: '#ecfdf5',
-                    padding: '2px 7px',
+                    padding: '3px 8px',
                     borderRadius: '8px',
                     lineHeight: '1.2',
                   }}
                 >
-                  <span className="pulse-online" style={{ width: '7px', height: '7px' }} /> {t.shopOnline}
+                  <span className="pulse-online-wrapper">
+                    <span className="pulse-online" />
+                  </span>
+                  <span>{t.shopOnline}</span>
                 </span>
               ) : (
                 <span
