@@ -1,16 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { Header } from '../../../../components/Header';
 import { DocumentCard } from '../../../../components/DocumentCard';
-import { ScannerModal } from '../../../../components/ScannerModal';
 import { PricingFooter } from '../../../../components/PricingFooter';
 import { useCustomerStore } from '../../../../lib/store';
 import { translations } from '../../../../lib/i18n';
 import { presignUpload, uploadBinary, confirmUpload, getQuote } from '../../../../lib/api';
 import { optimizeImage, imagesToPdf } from '../../../../lib/pdf-processor';
 import { UploadCloud, Camera, Image as ImageIcon, Loader2, FilePlus2 } from 'lucide-react';
+import { StepIndicator, IconTile, useToast } from '../../../../ui';
+
+// Lazy load heavy document scanner component
+const ScannerModal = dynamic(
+  () => import('../../../../components/ScannerModal').then((mod) => mod.ScannerModal),
+  { ssr: false }
+);
 
 export default function CartPage() {
   const params = useParams();
@@ -18,6 +25,7 @@ export default function CartPage() {
 
   const { language, shop, sessionToken, docs, addDoc, totals, setTotals, isQuoting, setQuoting } = useCustomerStore();
   const t = translations[language];
+  const { showToast } = useToast();
 
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +59,7 @@ export default function CartPage() {
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [docs, sessionToken]);
+  }, [docs, sessionToken, setQuoting, setTotals]);
 
   // Handle PDF file upload
   const handlePdfSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,8 +89,9 @@ export default function CartPage() {
           fitMode: 'FIT',
         },
       });
+      showToast(`${file.name} added to cart`, 'success');
     } catch (err: any) {
-      alert(err.message || 'Error uploading PDF');
+      showToast(err.message || 'Error uploading PDF', 'error');
     } finally {
       setUploadingState(null);
       if (pdfInputRef.current) pdfInputRef.current.value = '';
@@ -129,8 +138,9 @@ export default function CartPage() {
           fitMode: 'FIT',
         },
       });
+      showToast('Photos compiled into PDF and added to cart', 'success');
     } catch (err: any) {
-      alert(err.message || 'Error processing photos');
+      showToast(err.message || 'Error processing photos', 'error');
     } finally {
       setUploadingState(null);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -163,16 +173,20 @@ export default function CartPage() {
           fitMode: 'FIT',
         },
       });
+      showToast(`Scanned document (${pageCount} pages) added to cart`, 'success');
     } catch (err: any) {
-      alert(err.message || 'Error uploading scan');
+      showToast(err.message || 'Error uploading scan', 'error');
     } finally {
       setUploadingState(null);
     }
   };
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ width: '100%' }}>
       <Header shopName={shop?.shopName} isAvailable={shop?.isAvailable} />
+
+      {/* Step Indicator across Checkout Flow */}
+      <StepIndicator currentStep={1} />
 
       {/* Hidden File Inputs */}
       <input
@@ -191,75 +205,42 @@ export default function CartPage() {
         onChange={handlePhotosSelected}
       />
 
-      {/* Add Document Action Cards */}
+      {/* 3 Upload Action Tiles with Consistent Icons and Press Feedback */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button
+        <IconTile
+          icon={<UploadCloud size={20} strokeWidth={2.4} />}
+          label={t.uploadPdf}
           onClick={() => pdfInputRef.current?.click()}
-          className="btn-secondary"
-          style={{
-            flexDirection: 'column',
-            gap: '8px',
-            padding: '14px 6px',
-            textAlign: 'center',
-            minHeight: '74px',
-            borderRadius: '18px',
-            border: '1px solid rgba(99, 102, 241, 0.2)',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <UploadCloud size={20} color="#4f46e5" strokeWidth={2.2} />
-          </div>
-          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.uploadPdf}</span>
-        </button>
+          accentColor="#4f46e5"
+          bgColor="#eef2ff"
+          borderColor="rgba(99, 102, 241, 0.25)"
+        />
 
-        <button
+        <IconTile
+          icon={<ImageIcon size={20} strokeWidth={2.4} />}
+          label={t.uploadPhotos}
           onClick={() => photoInputRef.current?.click()}
-          className="btn-secondary"
-          style={{
-            flexDirection: 'column',
-            gap: '8px',
-            padding: '14px 6px',
-            textAlign: 'center',
-            minHeight: '74px',
-            borderRadius: '18px',
-            border: '1px solid rgba(2, 132, 199, 0.2)',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ImageIcon size={20} color="#0284c7" strokeWidth={2.2} />
-          </div>
-          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.uploadPhotos}</span>
-        </button>
+          accentColor="#0284c7"
+          bgColor="#e0f2fe"
+          borderColor="rgba(2, 132, 199, 0.25)"
+        />
 
-        <button
+        <IconTile
+          icon={<Camera size={20} strokeWidth={2.4} />}
+          label={t.scanCamera}
           onClick={() => setIsScannerOpen(true)}
-          className="btn-secondary"
-          style={{
-            flexDirection: 'column',
-            gap: '8px',
-            padding: '14px 6px',
-            textAlign: 'center',
-            minHeight: '74px',
-            borderRadius: '18px',
-            border: '1px solid rgba(16, 185, 129, 0.2)',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Camera size={20} color="#059669" strokeWidth={2.2} />
-          </div>
-          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.scanCamera}</span>
-        </button>
+          accentColor="#059669"
+          bgColor="#ecfdf5"
+          borderColor="rgba(16, 185, 129, 0.25)"
+        />
       </div>
 
-      {/* Uploading Spinner Indicator */}
+      {/* Uploading Status Banner */}
       {uploadingState && (
         <div
           className="glass-panel"
           style={{
-            padding: '16px',
+            padding: '14px 16px',
             marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
@@ -268,12 +249,12 @@ export default function CartPage() {
             background: '#eef2ff',
           }}
         >
-          <Loader2 size={20} className="animate-spin" color="#4f46e5" />
-          <span style={{ fontSize: '0.88rem', color: '#312e81', fontWeight: 600 }}>{uploadingState}</span>
+          <Loader2 size={18} className="animate-spin" color="#4f46e5" />
+          <span style={{ fontSize: '0.86rem', color: '#312e81', fontWeight: 600 }}>{uploadingState}</span>
         </div>
       )}
 
-      {/* Cart Document List */}
+      {/* Cart Document List or Friendly Empty State */}
       {docs.length === 0 ? (
         <div className="glass-panel" style={{ padding: '48px 20px', textAlign: 'center' }}>
           <div
@@ -286,13 +267,15 @@ export default function CartPage() {
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto',
-              color: '#64748b',
+              color: 'var(--text-dim)',
             }}
           >
             <FilePlus2 size={32} />
           </div>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '6px', color: '#0f172a' }}>{t.cartEmptyTitle}</h3>
-          <p style={{ fontSize: '0.88rem', color: '#64748b', maxWidth: '300px', margin: '0 auto' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
+            {t.cartEmptyTitle}
+          </h3>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', maxWidth: '300px', margin: '0 auto' }}>
             {t.cartEmptyDesc}
           </p>
         </div>
@@ -304,12 +287,14 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Scanner Modal */}
-      <ScannerModal
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onComplete={handleScanComplete}
-      />
+      {/* Lazy Loaded Scanner Modal */}
+      {isScannerOpen && (
+        <ScannerModal
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+          onComplete={handleScanComplete}
+        />
+      )}
 
       {/* Sticky Bottom Pricing Bar */}
       <PricingFooter slug={slug} />

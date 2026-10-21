@@ -98,6 +98,9 @@ export const translations = {
     collectAtCounter: 'Collect your printed sheets at the counter',
     orderCancelled: 'Order has been cancelled',
     errorNextAction: 'Please ask the shopkeeper or start a new order',
+    shopOfflineTitle: 'Shop is Temporarily Offline',
+    shopOfflineDesc: 'The printer station is currently taking a break or resting between queues. New submissions are temporarily paused. Ask at the counter or try again shortly.',
+    checkAgain: 'Check Again',
   },
   hi: {
     shopOnline: 'दुकान खुली है और प्रिंटर तैयार है',
@@ -196,5 +199,8 @@ export const translations = {
     collectAtCounter: 'काउंटर से अपने प्रिंट प्राप्त करें',
     orderCancelled: 'ऑर्डर रद्द कर दिया गया है',
     errorNextAction: 'कृपया दुकानदार से संपर्क करें या नया ऑर्डर दें',
+    shopOfflineTitle: 'दुकान अभी थोड़ी देर के लिए बंद है',
+    shopOfflineDesc: 'प्रिंटर स्टेशन अभी ऑफलाइन है। नई प्रिंटिंग अनुरोध जल्द ही फिर से शुरू होंगे। कृपया काउंटर पर संपर्क करें या थोड़ी देर में पुनः प्रयास करें।',
+    checkAgain: 'पुनः जांचें',
   },
 };

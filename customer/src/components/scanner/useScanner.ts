@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ScannedPage, ScannerFilter, CropCoords, ScannerStep } from './types';
 import { normalizeCapturedBlob, generatePageThumbnail, exportPagesToPdf } from './processor';
+import { useToast } from '../../ui/Toast';
 
 export function useScanner(onComplete: (pdfBlob: Blob, pageCount: number) => void, onClose: () => void) {
+  const { showToast } = useToast();
   const [pages, setPages] = useState<ScannedPage[]>([]);
   const [activeStep, setActiveStep] = useState<ScannerStep>('camera');
 
@@ -44,7 +46,7 @@ export function useScanner(onComplete: (pdfBlob: Blob, pageCount: number) => voi
   // Handle a new captured or selected image
   const handlePhotoCaptured = useCallback(async (rawBlob: Blob) => {
     if (pagesRef.current.length >= 30) {
-      alert('Maximum 30 pages per scan session reached.');
+      showToast('Maximum 30 pages per scan session reached.', 'warning');
       return;
     }
 
@@ -59,7 +61,7 @@ export function useScanner(onComplete: (pdfBlob: Blob, pageCount: number) => voi
     } catch (err) {
       console.error('Failed to normalize captured image', err);
     }
-  }, []);
+  }, [showToast]);
 
   // Save changes from Crop step
   const saveCroppedPage = useCallback(
@@ -174,12 +176,12 @@ export function useScanner(onComplete: (pdfBlob: Blob, pageCount: number) => voi
       onClose();
     } catch (err: any) {
       console.error('Failed to export PDF', err);
-      alert(err.message || 'Error creating PDF from scans');
+      showToast(err.message || 'Error creating PDF from scans', 'error');
     } finally {
       setIsExporting(false);
       setExportProgress(null);
     }
-  }, [pages, cleanupThumbnails, onComplete, onClose]);
+  }, [pages, cleanupThumbnails, onComplete, onClose, showToast]);
 
   // Handle modal close request
   const handleRequestClose = useCallback(() => {

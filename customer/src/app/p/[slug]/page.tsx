@@ -6,7 +6,7 @@ import { Header } from '../../../components/Header';
 import { useCustomerStore } from '../../../lib/store';
 import { translations } from '../../../lib/i18n';
 import { fetchShop, createSession } from '../../../lib/api';
-import { ArrowRight, FileText, CheckCircle2, AlertCircle, ShieldAlert, Sparkles, Zap, ShieldCheck, Camera } from 'lucide-react';
+import { ArrowRight, FileText, CheckCircle2, AlertCircle, ShieldAlert, Sparkles, Zap, ShieldCheck, Camera, Clock, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { QrScannerModal } from '../../../components/QrScannerModal';
 
@@ -40,7 +40,7 @@ export default function ShopLandingPage() {
     }
 
     init();
-  }, [slug]);
+  }, [slug, setShop, setSession]);
 
   if (loading) {
     return (
@@ -111,60 +111,121 @@ export default function ShopLandingPage() {
     <div className="animate-fade-in" style={{ width: '100%', paddingBottom: '32px' }}>
       <Header shopName={shop.shopName} isAvailable={shop.isAvailable} />
 
-      {!shop.isAvailable && (
+      {!shop.isAvailable ? (
         <div
           className="glass-panel"
           style={{
-            padding: '16px 18px',
-            marginBottom: '18px',
-            borderColor: '#fecdd3',
-            backgroundColor: '#fff1f2',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
+            padding: '28px 20px',
+            marginBottom: '20px',
+            borderRadius: '24px',
+            borderColor: '#fed7aa',
+            backgroundColor: '#fffaf5',
+            textAlign: 'center',
+            boxShadow: '0 12px 30px -8px rgba(249, 115, 22, 0.12)',
           }}
         >
-          <ShieldAlert size={24} color="#e11d48" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: '0.88rem', color: '#9f1239', fontWeight: 600 }}>
-            {t.shopOffline}. New print submissions are temporarily paused.
-          </span>
-        </div>
-      )}
-
-      {/* Hero Welcome Card */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '22px 20px',
-          marginBottom: '20px',
-          background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 100%)',
-          borderColor: 'rgba(99, 102, 241, 0.25)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', background: 'rgba(79, 70, 229, 0.1)', marginBottom: '10px' }}>
-          <Zap size={14} color="#4f46e5" />
-          <span
+          <div
             style={{
-              fontSize: '0.74rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: '#4338ca',
+              width: '64px',
+              height: '64px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              boxShadow: '0 10px 22px -4px rgba(249, 115, 22, 0.35)',
             }}
           >
-            Express Counter Print
-          </span>
-        </div>
+            <Clock size={32} color="#ffffff" strokeWidth={2.2} />
+          </div>
 
-        <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, marginBottom: '6px' }}>
-          Upload &amp; Print in Seconds
-        </h2>
-        <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
-          Skip the counter queue or WhatsApp file sharing. Choose your pages, verify live rates, and pick up your prints directly.
-        </p>
-      </div>
+          <h2 style={{ fontSize: '1.24rem', fontWeight: 800, color: '#9a3412', marginBottom: '8px' }}>
+            {t.shopOfflineTitle}
+          </h2>
+
+          <p style={{ fontSize: '0.88rem', color: '#7c2d12', lineHeight: 1.5, marginBottom: '20px', padding: '0 6px' }}>
+            {t.shopOfflineDesc}
+          </p>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="btn-secondary"
+              style={{
+                padding: '12px 18px',
+                borderRadius: '14px',
+                fontSize: '0.88rem',
+                minHeight: '44px',
+                borderColor: '#fdba74',
+                color: '#c2410c',
+                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <RefreshCw size={16} />
+              <span>{t.checkAgain}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsScannerOpen(true)}
+              className="btn-primary"
+              style={{
+                padding: '12px 18px',
+                borderRadius: '14px',
+                fontSize: '0.88rem',
+                minHeight: '44px',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Camera size={16} />
+              <span>{t.scanShopQr}</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Hero Welcome Card */
+        <div
+          className="glass-panel"
+          style={{
+            padding: '22px 20px',
+            marginBottom: '20px',
+            background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 100%)',
+            borderColor: 'rgba(99, 102, 241, 0.25)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', background: 'rgba(79, 70, 229, 0.1)', marginBottom: '10px' }}>
+            <Zap size={14} color="#4f46e5" />
+            <span
+              style={{
+                fontSize: '0.74rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: '#4338ca',
+              }}
+            >
+              Express Counter Print
+            </span>
+          </div>
+
+          <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, marginBottom: '6px' }}>
+            Upload &amp; Print in Seconds
+          </h2>
+          <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
+            Skip the counter queue or WhatsApp file sharing. Choose your pages, verify live rates, and pick up your prints directly.
+          </p>
+        </div>
+      )}
 
       {/* Pricing Catalog Section */}
       <div className="glass-panel" style={{ padding: '20px 18px', marginBottom: '22px' }}>
@@ -217,23 +278,47 @@ export default function ShopLandingPage() {
 
       {/* Action Buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <Link
-          href={`/p/${slug}/cart`}
-          className="btn-primary"
-          style={{
-            width: '100%',
-            padding: '16px 20px',
-            fontSize: '1.05rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            boxShadow: '0 10px 28px rgba(79, 70, 229, 0.38)',
-          }}
-        >
-          <span>{t.startPrinting}</span>
-          <ArrowRight size={20} />
-        </Link>
+        {shop.isAvailable ? (
+          <Link
+            href={`/p/${slug}/cart`}
+            className="btn-primary"
+            style={{
+              width: '100%',
+              padding: '16px 20px',
+              fontSize: '1.05rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: '0 10px 28px rgba(79, 70, 229, 0.38)',
+            }}
+          >
+            <span>{t.startPrinting}</span>
+            <ArrowRight size={20} />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            style={{
+              width: '100%',
+              padding: '16px 20px',
+              fontSize: '1rem',
+              fontWeight: 700,
+              borderRadius: '16px',
+              background: '#e2e8f0',
+              color: '#94a3b8',
+              border: 'none',
+              cursor: 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>{t.shopOffline}</span>
+          </button>
+        )}
 
         <button
           type="button"

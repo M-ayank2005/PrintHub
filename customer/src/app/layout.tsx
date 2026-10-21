@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { ToastProvider } from '../ui/Toast';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -42,11 +43,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body>
-        <div className="app-shell">
-          <main className="app-main-container">
-            {children}
-          </main>
-        </div>
+        <ToastProvider>
+          <div className="app-shell">
+            <main className="app-main-container">
+              {children}
+            </main>
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );

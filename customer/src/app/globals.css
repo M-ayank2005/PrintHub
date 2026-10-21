@@ -347,6 +347,11 @@ textarea {
   animation: bounceBadge 2.5s infinite ease-in-out;
 }
 
+@keyframes skeletonWave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Screen transition helpers */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

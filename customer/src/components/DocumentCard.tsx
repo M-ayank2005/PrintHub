@@ -3,8 +3,16 @@
 import React from 'react';
 import { CartDocItem, useCustomerStore } from '../lib/store';
 import { translations } from '../lib/i18n';
-import { FileText, Image as ImageIcon, Camera, Trash2, Plus, Minus, Layers } from 'lucide-react';
+import {
+  FileText,
+  Image as ImageIcon,
+  Camera,
+  Trash2,
+  Layers,
+  CheckCircle2,
+} from 'lucide-react';
 import { DocumentOptions } from '@printhub/shared';
+import { Segmented, Stepper } from '../ui';
 
 interface DocumentCardProps {
   doc: CartDocItem;
@@ -15,9 +23,9 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
   const t = translations[language];
 
   const pricing = shop?.pricing || {};
-  const isColorOffered = !!pricing.A4_COLOR_SINGLE?.enabled || !!pricing.A4_COLOR_DOUBLE?.enabled;
-  const isDuplexOffered = !!pricing.A4_BW_DOUBLE?.enabled || !!pricing.A4_COLOR_DOUBLE?.enabled;
-  const isA3Offered = !!pricing.A3_BW_SINGLE?.enabled || !!pricing.A3_COLOR_SINGLE?.enabled;
+  const isColorOffered = Boolean(pricing.A4_COLOR_SINGLE?.enabled || pricing.A4_COLOR_DOUBLE?.enabled);
+  const isDuplexOffered = Boolean(pricing.A4_BW_DOUBLE?.enabled || pricing.A4_COLOR_DOUBLE?.enabled);
+  const isA3Offered = Boolean(pricing.A3_BW_SINGLE?.enabled || pricing.A3_COLOR_SINGLE?.enabled);
 
   const handleOptionChange = (key: keyof DocumentOptions, value: any) => {
     updateDocOptions(doc.docId, { [key]: value });
@@ -26,43 +34,150 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
   const IconComponent =
     doc.kind === 'PDF' ? FileText : doc.kind === 'SCAN' ? Camera : ImageIcon;
 
+  const isMultiPage = doc.pages > 1;
+  const isUploaded = doc.uploadProgress === undefined || doc.uploadProgress === 100;
+
   return (
-    <div className="glass-panel" style={{ padding: '16px 14px', marginBottom: '16px' }}>
-      {/* Top row: Icon, Name, Page count, Delete button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+    <div
+      className="glass-panel"
+      style={{
+        padding: '16px 14px',
+        marginBottom: '14px',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        position: 'relative',
+        background: 'var(--bg-card)',
+      }}
+    >
+      {/* Top row: Icon/Thumbnail with Stack Effect, Name, Details, Delete */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '14px',
+          gap: '10px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+          {/* Document Preview Icon with stacked paper effect for multi-page */}
           <div
             style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '13px',
-              background: 'rgba(79, 70, 229, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#4f46e5',
+              position: 'relative',
+              width: '44px',
+              height: '44px',
               flexShrink: 0,
             }}
           >
-            <IconComponent size={21} />
+            {/* Multi-page paper stack layers */}
+            {isMultiPage && (
+              <>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: '-2px -2px 2px 2px',
+                    borderRadius: '12px',
+                    background: '#cbd5e1',
+                    zIndex: 0,
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: '-4px -4px 4px 4px',
+                    borderRadius: '12px',
+                    background: '#e2e8f0',
+                    zIndex: 0,
+                  }}
+                />
+              </>
+            )}
+
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                width: '100%',
+                height: '100%',
+                borderRadius: '12px',
+                background:
+                  doc.kind === 'PDF'
+                    ? 'rgba(79, 70, 229, 0.12)'
+                    : doc.kind === 'SCAN'
+                    ? 'rgba(5, 150, 105, 0.12)'
+                    : 'rgba(2, 132, 199, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color:
+                  doc.kind === 'PDF'
+                    ? 'var(--accent-primary)'
+                    : doc.kind === 'SCAN'
+                    ? 'var(--accent-emerald)'
+                    : 'var(--accent-cyan)',
+              }}
+            >
+              <IconComponent size={22} />
+
+              {/* Upload Progress ring / Green checkmark */}
+              {doc.uploadProgress !== undefined && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-4px',
+                    right: '-4px',
+                    background: '#ffffff',
+                    borderRadius: '50%',
+                    padding: '2px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  {isUploaded ? (
+                    <CheckCircle2 size={15} color="#059669" />
+                  ) : (
+                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4f46e5' }}>
+                      {doc.uploadProgress}%
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h4 style={{ fontSize: '0.94rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#0f172a', margin: 0 }}>
+            <h4
+              style={{
+                fontSize: '0.94rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                color: 'var(--text-main)',
+                margin: 0,
+              }}
+            >
               {doc.name}
             </h4>
-            <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginTop: '2px' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block', marginTop: '2px' }}>
               {doc.pages} {doc.pages === 1 ? 'page' : 'pages'} • {(doc.sizeBytes / (1024 * 1024)).toFixed(2)} MB
             </span>
           </div>
         </div>
 
         <button
+          type="button"
           onClick={() => removeDoc(doc.docId)}
+          aria-label={t.remove}
           className="stepper-btn"
-          style={{ color: '#e11d48', borderColor: '#fecdd3', background: '#fff1f2', width: '38px', height: '38px' }}
-          title={t.remove}
+          style={{
+            color: '#e11d48',
+            borderColor: '#fecdd3',
+            background: '#fff1f2',
+            width: '40px',
+            height: '40px',
+          }}
         >
-          <Trash2 size={15} />
+          <Trash2 size={16} />
         </button>
       </div>
 
@@ -70,56 +185,43 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
         {/* Copies Stepper */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px' }}>
             {t.copies}
           </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button
-              onClick={() => handleOptionChange('copies', Math.max(1, doc.options.copies - 1))}
-              disabled={doc.options.copies <= 1}
-              className="stepper-btn"
-              style={{ width: '38px', height: '38px' }}
-            >
-              <Minus size={13} />
-            </button>
-            <span style={{ fontSize: '1rem', fontWeight: 800, minWidth: '24px', textAlign: 'center', color: '#0f172a' }}>
-              {doc.options.copies}
-            </span>
-            <button
-              onClick={() => handleOptionChange('copies', Math.min(99, doc.options.copies + 1))}
-              className="stepper-btn"
-              style={{ width: '38px', height: '38px' }}
-            >
-              <Plus size={13} />
-            </button>
-          </div>
+          <Stepper
+            value={doc.options.copies}
+            min={1}
+            max={99}
+            onChange={(copies) => handleOptionChange('copies', copies)}
+          />
         </div>
 
         {/* Paper Size */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-            {t.paperSize}
-          </label>
-          <div className="segment-container" style={{ minHeight: '38px' }}>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.paperSize === 'A4' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('paperSize', 'A4')}
-              style={{ fontSize: '0.78rem', padding: '6px 4px' }}
-            >
-              A4
-            </button>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.paperSize === 'A3' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('paperSize', 'A3')}
-              disabled={!isA3Offered}
-              title={!isA3Offered ? t.notOffered : ''}
-              style={{ fontSize: '0.78rem', padding: '6px 4px' }}
-            >
-              A3
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+              {t.paperSize}
+            </label>
+            {!isA3Offered && (
+              <span style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 600 }}>
+                {t.notOffered}
+              </span>
+            )}
           </div>
+          <Segmented
+            value={doc.options.paperSize}
+            onChange={(val) => handleOptionChange('paperSize', val)}
+            size="sm"
+            options={[
+              { value: 'A4', label: 'A4' },
+              {
+                value: 'A3',
+                label: 'A3',
+                disabled: !isA3Offered,
+                disabledReason: t.notOffered,
+              },
+            ]}
+          />
         </div>
       </div>
 
@@ -127,93 +229,85 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
         {/* Color Mode */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-            {t.colorMode}
-          </label>
-          <div className="segment-container" style={{ minHeight: '38px' }}>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.colorMode === 'BW' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('colorMode', 'BW')}
-              style={{ fontSize: '0.76rem', padding: '6px 4px' }}
-            >
-              {t.bw}
-            </button>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.colorMode === 'COLOR' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('colorMode', 'COLOR')}
-              disabled={!isColorOffered}
-              title={!isColorOffered ? t.notOffered : ''}
-              style={{ fontSize: '0.76rem', padding: '6px 4px' }}
-            >
-              {t.color}
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+              {t.colorMode}
+            </label>
+            {!isColorOffered && (
+              <span style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 600 }}>
+                {t.notOffered}
+              </span>
+            )}
           </div>
+          <Segmented
+            value={doc.options.colorMode}
+            onChange={(val) => handleOptionChange('colorMode', val)}
+            size="sm"
+            options={[
+              { value: 'BW', label: t.bw },
+              {
+                value: 'COLOR',
+                label: t.color,
+                disabled: !isColorOffered,
+                disabledReason: t.notOffered,
+              },
+            ]}
+          />
         </div>
 
         {/* Sides (Single vs Duplex) */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-            {t.sides}
-          </label>
-          <div className="segment-container" style={{ minHeight: '38px' }}>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.sides === 'SINGLE' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('sides', 'SINGLE')}
-              style={{ fontSize: '0.74rem', padding: '6px 2px' }}
-            >
-              {t.singleSided}
-            </button>
-            <button
-              type="button"
-              className={`segment-btn ${doc.options.sides === 'DOUBLE' ? 'active' : ''}`}
-              onClick={() => handleOptionChange('sides', 'DOUBLE')}
-              disabled={!isDuplexOffered}
-              title={!isDuplexOffered ? t.notOffered : ''}
-              style={{ fontSize: '0.74rem', padding: '6px 2px' }}
-            >
-              {t.doubleSided}
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+              {t.sides}
+            </label>
+            {!isDuplexOffered && (
+              <span style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 600 }}>
+                {t.notOffered}
+              </span>
+            )}
           </div>
+          <Segmented
+            value={doc.options.sides}
+            onChange={(val) => handleOptionChange('sides', val)}
+            size="sm"
+            options={[
+              { value: 'SINGLE', label: t.singleSided },
+              {
+                value: 'DOUBLE',
+                label: t.doubleSided,
+                disabled: !isDuplexOffered,
+                disabledReason: t.notOffered,
+              },
+            ]}
+          />
         </div>
       </div>
 
-      {/* N-up and Page Range */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        {/* N-up (Pages per sheet) */}
+      {/* N-up (Pages per sheet) Segmented Control & Page Range */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px' }}>
             <Layers size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
             {t.pagesPerSheet}
           </label>
-          <select
+          <Segmented
             value={doc.options.pagesPerSheet}
-            onChange={(e) => handleOptionChange('pagesPerSheet', parseInt(e.target.value, 10))}
-            style={{
-              width: '100%',
-              padding: '9px 12px',
-              borderRadius: '12px',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#0f172a',
-              fontSize: '0.88rem',
-              fontWeight: 600,
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            <option value="1">1 page</option>
-            <option value="2">2 pages</option>
-            <option value="4">4 pages</option>
-            <option value="6">6 pages</option>
-            <option value="9">9 pages</option>
-          </select>
+            onChange={(val) => handleOptionChange('pagesPerSheet', val)}
+            size="sm"
+            options={[
+              { value: 1, label: '1' },
+              { value: 2, label: '2' },
+              { value: 4, label: '4' },
+              { value: 6, label: '6' },
+              { value: 9, label: '9' },
+            ]}
+          />
         </div>
 
         {/* Page Range Input */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
             {t.pageRange}
           </label>
           <input
@@ -227,10 +321,11 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
               borderRadius: '12px',
               background: '#ffffff',
               border: '1px solid #cbd5e1',
-              color: '#0f172a',
-              fontSize: '0.88rem',
+              color: 'var(--text-main)',
+              fontSize: '16px', // Prevents iOS auto-zoom
               fontWeight: 500,
               boxShadow: 'var(--shadow-sm)',
+              outline: 'none',
             }}
           />
         </div>
