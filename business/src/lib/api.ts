@@ -48,10 +48,7 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
   const res = await fetch(`${API_BASE}${path}`, {
     cache: 'no-store',
     ...options,
-    headers: {
-      'Cache-Control': 'no-cache',
-      ...headers,
-    },
+    headers,
   });
 
   if (res.status === 401 && !isRetry && !path.startsWith('/auth/')) {

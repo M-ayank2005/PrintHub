@@ -54,7 +54,15 @@ export function createApp(): express.Application {
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-session-token'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'x-session-token',
+        'Cache-Control',
+        'Pragma',
+        'Expires',
+        'X-Requested-With',
+      ],
     })
   );
 
