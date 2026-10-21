@@ -15,56 +15,69 @@ export const Header: React.FC<HeaderProps> = ({ shopName, isAvailable = true }) 
   const t = translations[language];
 
   return (
-    <header className="glass-panel" style={{ padding: '16px 20px', marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <header className="glass-panel" style={{ padding: '14px 16px', marginBottom: '18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
           <div
             style={{
               width: '42px',
               height: '42px',
               borderRadius: '14px',
-              background: '#4f46e5',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 6px 16px rgba(79, 70, 229, 0.3)',
+              boxShadow: '0 6px 16px rgba(79, 70, 229, 0.28)',
               color: '#ffffff',
               flexShrink: 0,
             }}
           >
-            <Printer size={22} />
+            <Printer size={22} strokeWidth={2.2} />
           </div>
 
-          <div>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#0f172a' }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h1
+              style={{
+                fontSize: '1.12rem',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: '#0f172a',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                margin: 0,
+              }}
+            >
               {shopName || 'PrintHub Express'}
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
               {isAvailable ? (
                 <span
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.78rem',
+                    gap: '5px',
+                    fontSize: '0.74rem',
                     color: '#059669',
                     fontWeight: 700,
                     background: '#ecfdf5',
-                    padding: '2px 8px',
+                    padding: '2px 7px',
                     borderRadius: '8px',
+                    lineHeight: '1.2',
                   }}
                 >
-                  <span className="pulse-online" /> {t.shopOnline}
+                  <span className="pulse-online" style={{ width: '7px', height: '7px' }} /> {t.shopOnline}
                 </span>
               ) : (
                 <span
                   style={{
-                    fontSize: '0.78rem',
+                    fontSize: '0.74rem',
                     color: '#e11d48',
                     fontWeight: 700,
                     background: '#fff1f2',
-                    padding: '2px 8px',
+                    padding: '2px 7px',
                     borderRadius: '8px',
+                    lineHeight: '1.2',
                   }}
                 >
                   ● {t.shopOffline}
@@ -78,11 +91,18 @@ export const Header: React.FC<HeaderProps> = ({ shopName, isAvailable = true }) 
         <button
           onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
           className="btn-secondary"
-          style={{ padding: '8px 12px', fontSize: '0.82rem', borderRadius: '12px', fontWeight: 700 }}
+          style={{
+            padding: '7px 11px',
+            fontSize: '0.8rem',
+            borderRadius: '12px',
+            fontWeight: 700,
+            flexShrink: 0,
+            minHeight: '36px',
+          }}
           title="Switch Language"
         >
-          <Globe size={15} color="#4f46e5" />
-          <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
+          <Globe size={14} color="#4f46e5" />
+          <span>{language === 'en' ? 'हिन्दी' : 'EN'}</span>
         </button>
       </div>
 

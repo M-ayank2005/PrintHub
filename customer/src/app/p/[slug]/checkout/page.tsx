@@ -77,13 +77,13 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '480px', margin: '0 auto', paddingBottom: '32px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-        <Link href={`/p/${slug}/cart`} className="btn-secondary" style={{ padding: '10px 14px', borderRadius: '12px' }}>
+    <div className="animate-fade-in" style={{ width: '100%', paddingBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+        <Link href={`/p/${slug}/cart`} className="btn-secondary" style={{ padding: '10px 12px', borderRadius: '12px', minHeight: '40px' }}>
           <ArrowLeft size={18} color="#0f172a" />
         </Link>
         <div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
             {t.checkoutTitle}
           </h2>
           <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Confirm details for instant print release</span>
@@ -92,7 +92,7 @@ export default function CheckoutPage() {
 
       <form onSubmit={handleSubmit}>
         {/* Customer Details Form */}
-        <div className="glass-panel" style={{ padding: '22px 20px', marginBottom: '18px' }}>
+        <div className="glass-panel" style={{ padding: '20px 18px', marginBottom: '18px' }}>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
               <User size={15} color="#4f46e5" style={{ display: 'inline', verticalAlign: '-2px', marginRight: '6px' }} />

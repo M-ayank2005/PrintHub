@@ -27,7 +27,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#4f46e5',
+  viewportFit: 'cover',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
@@ -39,11 +40,15 @@ export default function RootLayout({
     <html lang="en" className={`${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖨️</text></svg>" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body>
-        <main style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', padding: '16px 16px 100px 16px' }}>
-          {children}
-        </main>
+        <div className="app-shell">
+          <main className="app-main-container">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

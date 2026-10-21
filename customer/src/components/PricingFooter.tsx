@@ -22,27 +22,27 @@ export const PricingFooter: React.FC<PricingFooterProps> = ({ slug }) => {
     <div className="bottom-floating-bar">
       <div
         style={{
-          maxWidth: '480px',
+          maxWidth: '500px',
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
+          gap: '12px',
         }}
       >
-        <div>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
             {t.totalEstimated}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669', letterSpacing: '-0.02em' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', lineHeight: 1.1, marginTop: '2px' }}>
+            <span style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669', letterSpacing: '-0.02em' }}>
               ₹{priceRupees}
             </span>
             {isQuoting && <Loader2 size={16} className="animate-spin" color="#4f46e5" />}
           </div>
           {totals && (
-            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-              {totals.sheets} {totals.sheets === 1 ? 'sheet' : 'sheets'} ({totals.bwSheets} B&W, {totals.colorSheets} Color)
+            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {totals.sheets} {totals.sheets === 1 ? 'sheet' : 'sheets'} • {totals.bwSheets > 0 ? `${totals.bwSheets} B&W` : ''}{totals.colorSheets > 0 ? ` ${totals.colorSheets} Color` : ''}
             </span>
           )}
         </div>
@@ -50,10 +50,18 @@ export const PricingFooter: React.FC<PricingFooterProps> = ({ slug }) => {
         <Link
           href={`/p/${slug}/checkout`}
           className="btn-primary"
-          style={{ padding: '12px 22px', fontSize: '0.98rem' }}
+          style={{
+            padding: '12px 18px',
+            fontSize: '0.94rem',
+            fontWeight: 800,
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            borderRadius: '16px',
+            gap: '6px',
+          }}
         >
           <span>{t.continueToCheckout}</span>
-          <ArrowRight size={18} />
+          <ArrowRight size={17} />
         </Link>
       </div>
     </div>

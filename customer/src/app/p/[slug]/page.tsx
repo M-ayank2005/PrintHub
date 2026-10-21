@@ -108,7 +108,7 @@ export default function ShopLandingPage() {
   const pricing = shop.pricing || {};
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '480px', margin: '0 auto', paddingBottom: '32px' }}>
+    <div className="animate-fade-in" style={{ width: '100%', paddingBottom: '32px' }}>
       <Header shopName={shop.shopName} isAvailable={shop.isAvailable} />
 
       {!shop.isAvailable && (
@@ -116,7 +116,7 @@ export default function ShopLandingPage() {
           className="glass-panel"
           style={{
             padding: '16px 18px',
-            marginBottom: '20px',
+            marginBottom: '18px',
             borderColor: '#fecdd3',
             backgroundColor: '#fff1f2',
             display: 'flex',
@@ -131,56 +131,57 @@ export default function ShopLandingPage() {
         </div>
       )}
 
-      {/* Hero Welcome Banner */}
+      {/* Hero Welcome Card */}
       <div
         className="glass-panel"
         style={{
-          padding: '24px 20px',
+          padding: '22px 20px',
           marginBottom: '20px',
-          background: '#eef2ff',
-          borderColor: '#c7d2fe',
+          background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 100%)',
+          borderColor: 'rgba(99, 102, 241, 0.25)',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', background: 'rgba(79, 70, 229, 0.1)', marginBottom: '10px' }}>
+          <Zap size={14} color="#4f46e5" />
           <span
             style={{
-              fontSize: '0.75rem',
+              fontSize: '0.74rem',
               fontWeight: 800,
               textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: '#4f46e5',
+              letterSpacing: '0.05em',
+              color: '#4338ca',
             }}
           >
-            ⚡ Express Counter Print
+            Express Counter Print
           </span>
         </div>
 
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, marginBottom: '6px' }}>
-          Upload & Print in Seconds
+        <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, marginBottom: '6px' }}>
+          Upload &amp; Print in Seconds
         </h2>
         <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
-          Skip the counter queue or WhatsApp forwards. Choose your pages, check live rates, and pick up your prints directly.
+          Skip the counter queue or WhatsApp file sharing. Choose your pages, verify live rates, and pick up your prints directly.
         </p>
       </div>
 
       {/* Pricing Catalog Section */}
-      <div className="glass-panel" style={{ padding: '22px 20px', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a' }}>
-          <FileText size={20} color="#4f46e5" />
+      <div className="glass-panel" style={{ padding: '20px 18px', marginBottom: '22px' }}>
+        <h3 style={{ fontSize: '1.02rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a' }}>
+          <FileText size={19} color="#4f46e5" />
           {t.priceList}
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* A4 BW Single */}
           {pricing.A4_BW_SINGLE?.enabled && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-              <div>
-                <strong style={{ fontSize: '0.92rem', color: '#0f172a' }}>A4 Black & White (Single)</strong>
-                <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>Standard monochrome document</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: '#f8fafc', border: '1px solid #f1f5f9', gap: '10px' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>A4 Black &amp; White (Single)</strong>
+                <span style={{ display: 'block', fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>Standard monochrome document</span>
               </div>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
+              <span style={{ fontSize: '1.18rem', fontWeight: 800, color: '#059669', flexShrink: 0 }}>
                 ₹{(pricing.A4_BW_SINGLE.pricePaise / 100).toFixed(2)}
               </span>
             </div>
@@ -188,12 +189,12 @@ export default function ShopLandingPage() {
 
           {/* A4 BW Double */}
           {pricing.A4_BW_DOUBLE?.enabled && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-              <div>
-                <strong style={{ fontSize: '0.92rem', color: '#0f172a' }}>A4 B&W (Back-to-Back)</strong>
-                <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>Two sides on single sheet</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: '#f8fafc', border: '1px solid #f1f5f9', gap: '10px' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>A4 B&amp;W (Back-to-Back)</strong>
+                <span style={{ display: 'block', fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>Eco two sides on single sheet</span>
               </div>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
+              <span style={{ fontSize: '1.18rem', fontWeight: 800, color: '#059669', flexShrink: 0 }}>
                 ₹{(pricing.A4_BW_DOUBLE.pricePaise / 100).toFixed(2)}
               </span>
             </div>
@@ -201,12 +202,12 @@ export default function ShopLandingPage() {
 
           {/* A4 Color Single */}
           {pricing.A4_COLOR_SINGLE?.enabled && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-              <div>
-                <strong style={{ fontSize: '0.92rem', color: '#0f172a' }}>A4 Full Colour</strong>
-                <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>Certificates, photos, artwork</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: '#f8fafc', border: '1px solid #f1f5f9', gap: '10px' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <strong style={{ fontSize: '0.92rem', color: '#0f172a', display: 'block' }}>A4 Full Colour</strong>
+                <span style={{ display: 'block', fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>Certificates, photos, diagrams</span>
               </div>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284c7' }}>
+              <span style={{ fontSize: '1.18rem', fontWeight: 800, color: '#0284c7', flexShrink: 0 }}>
                 ₹{(pricing.A4_COLOR_SINGLE.pricePaise / 100).toFixed(2)}
               </span>
             </div>
@@ -214,23 +215,38 @@ export default function ShopLandingPage() {
         </div>
       </div>
 
-      {/* Start Printing CTA Button */}
-      <Link
-        href={`/p/${slug}/cart`}
-        className="btn-primary"
-        style={{
-          width: '100%',
-          padding: '16px',
-          fontSize: '1.1rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-        }}
-      >
-        <span>{t.startPrinting}</span>
-        <ArrowRight size={20} />
-      </Link>
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <Link
+          href={`/p/${slug}/cart`}
+          className="btn-primary"
+          style={{
+            width: '100%',
+            padding: '16px 20px',
+            fontSize: '1.05rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            boxShadow: '0 10px 28px rgba(79, 70, 229, 0.38)',
+          }}
+        >
+          <span>{t.startPrinting}</span>
+          <ArrowRight size={20} />
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setIsScannerOpen(true)}
+          className="btn-secondary"
+          style={{ width: '100%', minHeight: '44px', fontSize: '0.86rem' }}
+        >
+          <Camera size={16} color="#6366f1" />
+          <span>Scan Another Print Shop QR</span>
+        </button>
+      </div>
+
+      <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
     </div>
   );
 }

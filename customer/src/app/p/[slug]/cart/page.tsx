@@ -191,33 +191,66 @@ export default function CartPage() {
         onChange={handlePhotosSelected}
       />
 
-      {/* Add Document Action Buttons */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+      {/* Add Document Action Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
         <button
           onClick={() => pdfInputRef.current?.click()}
           className="btn-secondary"
-          style={{ flexDirection: 'column', gap: '6px', padding: '14px 8px', textAlign: 'center' }}
+          style={{
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '14px 6px',
+            textAlign: 'center',
+            minHeight: '74px',
+            borderRadius: '18px',
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          }}
         >
-          <UploadCloud size={22} color="#818cf8" />
-          <span style={{ fontSize: '0.78rem' }}>{t.uploadPdf}</span>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <UploadCloud size={20} color="#4f46e5" strokeWidth={2.2} />
+          </div>
+          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.uploadPdf}</span>
         </button>
 
         <button
           onClick={() => photoInputRef.current?.click()}
           className="btn-secondary"
-          style={{ flexDirection: 'column', gap: '6px', padding: '14px 8px', textAlign: 'center' }}
+          style={{
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '14px 6px',
+            textAlign: 'center',
+            minHeight: '74px',
+            borderRadius: '18px',
+            border: '1px solid rgba(2, 132, 199, 0.2)',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          }}
         >
-          <ImageIcon size={22} color="#06b6d4" />
-          <span style={{ fontSize: '0.78rem' }}>{t.uploadPhotos}</span>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ImageIcon size={20} color="#0284c7" strokeWidth={2.2} />
+          </div>
+          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.uploadPhotos}</span>
         </button>
 
         <button
           onClick={() => setIsScannerOpen(true)}
           className="btn-secondary"
-          style={{ flexDirection: 'column', gap: '6px', padding: '14px 8px', textAlign: 'center' }}
+          style={{
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '14px 6px',
+            textAlign: 'center',
+            minHeight: '74px',
+            borderRadius: '18px',
+            border: '1px solid rgba(16, 185, 129, 0.2)',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          }}
         >
-          <Camera size={22} color="#10b981" />
-          <span style={{ fontSize: '0.78rem' }}>{t.scanCamera}</span>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Camera size={20} color="#059669" strokeWidth={2.2} />
+          </div>
+          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{t.scanCamera}</span>
         </button>
       </div>
 

@@ -34,21 +34,45 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({ isOpen, onClose, onC
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
+
       streamRef.current = stream;
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        const video = videoRef.current;
+        video.srcObject = stream;
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('muted', 'true');
+        video.setAttribute('autoplay', 'true');
+
+        if (video.readyState < 2) {
+          await new Promise<void>((res) => {
+            video.onloadeddata = () => res();
+            setTimeout(res, 500);
+          });
+        }
+        await video.play().catch((err) => console.warn('Scanner camera play err:', err));
       }
       setCameraActive(true);
     } catch (err) {
-      console.warn('Camera access denied or unavailable, using fallback', err);
+      console.warn('Camera access denied or unavailable', err);
       setCameraActive(false);
     }
   };

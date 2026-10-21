@@ -27,15 +27,15 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
     doc.kind === 'PDF' ? FileText : doc.kind === 'SCAN' ? Camera : ImageIcon;
 
   return (
-    <div className="glass-panel" style={{ padding: '18px 20px', marginBottom: '16px' }}>
+    <div className="glass-panel" style={{ padding: '16px 14px', marginBottom: '16px' }}>
       {/* Top row: Icon, Name, Page count, Delete button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '14px',
+              width: '42px',
+              height: '42px',
+              borderRadius: '13px',
               background: 'rgba(79, 70, 229, 0.1)',
               display: 'flex',
               alignItems: 'center',
@@ -44,13 +44,13 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
               flexShrink: 0,
             }}
           >
-            <IconComponent size={22} />
+            <IconComponent size={21} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <h4 style={{ fontSize: '0.98rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#0f172a' }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h4 style={{ fontSize: '0.94rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#0f172a', margin: 0 }}>
               {doc.name}
             </h4>
-            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+            <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginTop: '2px' }}>
               {doc.pages} {doc.pages === 1 ? 'page' : 'pages'} • {(doc.sizeBytes / (1024 * 1024)).toFixed(2)} MB
             </span>
           </div>
@@ -59,50 +59,53 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
         <button
           onClick={() => removeDoc(doc.docId)}
           className="stepper-btn"
-          style={{ color: '#e11d48', borderColor: '#fecdd3', background: '#fff1f2' }}
+          style={{ color: '#e11d48', borderColor: '#fecdd3', background: '#fff1f2', width: '38px', height: '38px' }}
           title={t.remove}
         >
-          <Trash2 size={16} />
+          <Trash2 size={15} />
         </button>
       </div>
 
       {/* Options Controls Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
         {/* Copies Stepper */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
             {t.copies}
           </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               onClick={() => handleOptionChange('copies', Math.max(1, doc.options.copies - 1))}
               disabled={doc.options.copies <= 1}
               className="stepper-btn"
+              style={{ width: '38px', height: '38px' }}
             >
-              <Minus size={14} />
+              <Minus size={13} />
             </button>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, minWidth: '28px', textAlign: 'center', color: '#0f172a' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 800, minWidth: '24px', textAlign: 'center', color: '#0f172a' }}>
               {doc.options.copies}
             </span>
             <button
               onClick={() => handleOptionChange('copies', Math.min(99, doc.options.copies + 1))}
               className="stepper-btn"
+              style={{ width: '38px', height: '38px' }}
             >
-              <Plus size={14} />
+              <Plus size={13} />
             </button>
           </div>
         </div>
 
         {/* Paper Size */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
             {t.paperSize}
           </label>
-          <div className="segment-container">
+          <div className="segment-container" style={{ minHeight: '38px' }}>
             <button
               type="button"
               className={`segment-btn ${doc.options.paperSize === 'A4' ? 'active' : ''}`}
               onClick={() => handleOptionChange('paperSize', 'A4')}
+              style={{ fontSize: '0.78rem', padding: '6px 4px' }}
             >
               A4
             </button>
@@ -112,6 +115,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
               onClick={() => handleOptionChange('paperSize', 'A3')}
               disabled={!isA3Offered}
               title={!isA3Offered ? t.notOffered : ''}
+              style={{ fontSize: '0.78rem', padding: '6px 4px' }}
             >
               A3
             </button>
@@ -120,17 +124,18 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
       </div>
 
       {/* Colour Mode and Sides */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
         {/* Color Mode */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
             {t.colorMode}
           </label>
-          <div className="segment-container">
+          <div className="segment-container" style={{ minHeight: '38px' }}>
             <button
               type="button"
               className={`segment-btn ${doc.options.colorMode === 'BW' ? 'active' : ''}`}
               onClick={() => handleOptionChange('colorMode', 'BW')}
+              style={{ fontSize: '0.76rem', padding: '6px 4px' }}
             >
               {t.bw}
             </button>
@@ -140,6 +145,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
               onClick={() => handleOptionChange('colorMode', 'COLOR')}
               disabled={!isColorOffered}
               title={!isColorOffered ? t.notOffered : ''}
+              style={{ fontSize: '0.76rem', padding: '6px 4px' }}
             >
               {t.color}
             </button>
@@ -148,14 +154,15 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
 
         {/* Sides (Single vs Duplex) */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
             {t.sides}
           </label>
-          <div className="segment-container">
+          <div className="segment-container" style={{ minHeight: '38px' }}>
             <button
               type="button"
               className={`segment-btn ${doc.options.sides === 'SINGLE' ? 'active' : ''}`}
               onClick={() => handleOptionChange('sides', 'SINGLE')}
+              style={{ fontSize: '0.74rem', padding: '6px 2px' }}
             >
               {t.singleSided}
             </button>
@@ -165,6 +172,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc }) => {
               onClick={() => handleOptionChange('sides', 'DOUBLE')}
               disabled={!isDuplexOffered}
               title={!isDuplexOffered ? t.notOffered : ''}
+              style={{ fontSize: '0.74rem', padding: '6px 2px' }}
             >
               {t.doubleSided}
             </button>

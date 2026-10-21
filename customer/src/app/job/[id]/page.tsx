@@ -147,15 +147,15 @@ export default function JobStatusPage() {
   const isCancelled = job.status === 'CANCELLED';
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '480px', margin: '0 auto', paddingBottom: '32px' }}>
+    <div className="animate-fade-in" style={{ width: '100%', paddingBottom: '32px' }}>
       {/* Pickup Code Hero Card */}
       <div
         className="glass-panel"
         style={{
-          padding: '28px 24px',
+          padding: '24px 20px',
           textAlign: 'center',
           marginBottom: '20px',
-          background: '#4f46e5',
+          background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
           color: '#ffffff',
           boxShadow: '0 16px 36px rgba(79, 70, 229, 0.35)',
           border: 'none',
@@ -167,11 +167,11 @@ export default function JobStatusPage() {
         <div
           onClick={handleCopyCode}
           style={{
-            fontSize: '3.6rem',
+            fontSize: 'clamp(2.8rem, 11vw, 3.8rem)',
             fontWeight: 800,
             fontFamily: 'var(--font-mono)',
             letterSpacing: '0.05em',
-            margin: '8px 0',
+            margin: '6px 0',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',

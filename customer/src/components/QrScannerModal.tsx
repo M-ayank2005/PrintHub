@@ -398,7 +398,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
+        padding: '12px',
         animation: 'fadeInScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
@@ -424,7 +424,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '92vh',
+          maxHeight: '94vh',
         }}
       >
         {/* Header */}
