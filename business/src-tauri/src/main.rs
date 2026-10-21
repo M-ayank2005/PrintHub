@@ -95,10 +95,18 @@ async fn print_pdf_silent(printer: String, pdf_path: String, copies: u32, is_dup
 }
 
 fn main() {
+  // Log any fatal panics to %TEMP%/printhub_crash.log
+  std::panic::set_hook(Box::new(|info| {
+    let crash_path = std::env::temp_dir().join("printhub_crash.log");
+    let msg = format!("PrintHub Crash Log [{:?}]:\n{}\n", std::time::SystemTime::now(), info);
+    let _ = std::fs::write(&crash_path, msg);
+  }));
+
   tauri::Builder::default()
     .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
       if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
+        let _ = window.unminimize();
         let _ = window.set_focus();
       }
     }))
@@ -122,6 +130,7 @@ fn main() {
           "open" => {
             if let Some(window) = app.get_webview_window("main") {
               let _ = window.show();
+              let _ = window.unminimize();
               let _ = window.set_focus();
             }
           }
@@ -138,11 +147,23 @@ fn main() {
             let app = tray.app_handle();
             if let Some(window) = app.get_webview_window("main") {
               let _ = window.show();
+              let _ = window.unminimize();
               let _ = window.set_focus();
             }
           }
         })
         .build(app)?;
+
+      // 3. Explicitly show and focus the window unless launched with --minimized
+      let args: Vec<String> = std::env::args().collect();
+      let start_minimized = args.iter().any(|arg| arg == "--minimized");
+      if !start_minimized {
+        if let Some(window) = app.get_webview_window("main") {
+          let _ = window.show();
+          let _ = window.unminimize();
+          let _ = window.set_focus();
+        }
+      }
 
       Ok(())
     })

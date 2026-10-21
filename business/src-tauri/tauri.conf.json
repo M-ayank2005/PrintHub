@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "PrintHub Business",
         "width": 1200,
         "height": 780,
@@ -40,8 +41,5 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
-  },
-  "plugins": {
-    "autostart": {}
   }
 }
