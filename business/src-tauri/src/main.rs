@@ -26,7 +26,7 @@ fn get_system_printers() -> Vec<PrinterInfo> {
     .args(["-Command", "Get-Printer | Select-Object Name, Type, DriverName | ConvertTo-Json"])
     .output();
 
-  let mut printers = vec![
+  let printers = vec![
     PrinterInfo {
       name: "Microsoft Print to PDF".to_string(),
       is_default: true,

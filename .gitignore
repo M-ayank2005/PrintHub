@@ -10,6 +10,7 @@ out/
 target/
 *.tsbuildinfo
 business/src-tauri/target/
+business/src-tauri/gen/
 
 # Environment and secrets
 .env

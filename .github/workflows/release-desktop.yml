@@ -44,20 +44,32 @@ jobs:
       - name: Build shared package
         run: pnpm --filter @printhub/shared build
 
+      - name: Configure Business Production Environment
+        run: |
+          echo "NEXT_PUBLIC_API_URL=https://printhub-hltn.onrender.com" > business/.env.production
+          echo "NEXT_PUBLIC_CUSTOMER_URL=https://print-hub-mauve.vercel.app" >> business/.env.production
+        shell: bash
+
       - name: Build Tauri Desktop NSIS Installer
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://printhub-hltn.onrender.com' }}
-          NEXT_PUBLIC_CUSTOMER_URL: ${{ secrets.NEXT_PUBLIC_CUSTOMER_URL || 'https://print-hub-mauve.vercel.app' }}
+          NEXT_PUBLIC_API_URL: "https://printhub-hltn.onrender.com"
+          NEXT_PUBLIC_CUSTOMER_URL: "https://print-hub-mauve.vercel.app"
         with:
           projectPath: business
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }}
-          releaseName: 'PrintHub Business ${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }}'
+          tagName: "${{ github.event.inputs.version || github.ref_name }}"
+          releaseName: "PrintHub Business ${{ github.event.inputs.version || github.ref_name }}"
           releaseBody: |
-            PrintHub Business Shop Terminal Desktop Application (${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }})
+            PrintHub Business Shop Terminal Desktop Application (${{ github.event.inputs.version || github.ref_name }})
+
+            ### Production Cloud Integrations:
+            - **Backend API & WebSockets**: https://printhub-hltn.onrender.com
+            - **Customer QR Poster Base**: https://print-hub-mauve.vercel.app
+            - **Zero-Bandwidth Storage**: Direct presigned downloads from Backblaze B2
 
             > [!NOTE]
             > Unsigned NSIS installers may trigger a Microsoft Defender SmartScreen prompt on first launch ("Windows protected your PC"). Click "More info" and select "Run anyway".
           releaseDraft: false
           prerelease: false
+          uploadWorkflowArtifacts: true
