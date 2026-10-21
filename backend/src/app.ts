@@ -34,20 +34,18 @@ export function createApp(): express.Application {
         // Allow requests with no origin (e.g. server-to-server, curl)
         if (!origin) return callback(null, true);
 
-        if (config.env !== 'production') {
-          if (
-            config.cors.allowedOrigins.includes(origin) ||
-            origin.startsWith('http://localhost:') ||
-            origin.startsWith('tauri://') ||
-            origin.startsWith('http://tauri.localhost') ||
-            origin.startsWith('https://tauri.localhost')
-          ) {
-            return callback(null, true);
-          }
+        // Always allow desktop Tauri schemes and local origin requests
+        if (
+          origin.startsWith('http://localhost') ||
+          origin.startsWith('tauri://') ||
+          origin.startsWith('http://tauri.localhost') ||
+          origin.startsWith('https://tauri.localhost') ||
+          origin.startsWith('asset://')
+        ) {
           return callback(null, true);
         }
 
-        // Production strictly enforces allowed origins
+        // Production strictly enforces allowed origins for web requests
         if (config.cors.allowedOrigins.includes(origin)) {
           return callback(null, true);
         }

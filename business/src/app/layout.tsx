@@ -85,7 +85,9 @@ export default function BusinessLayout({
         });
     } else {
       setIsAuthenticated(false);
-      setIsCheckingAuth(false);
+      setTimeout(() => {
+        setIsCheckingAuth(false);
+      }, 400);
     }
 
     return () => {
@@ -251,13 +253,26 @@ export default function BusinessLayout({
             `,
           }}
         />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                min-height: 100%;
+                overflow-x: hidden;
+              }
+            `,
+          }}
+        />
       </head>
       <body>
         {isCheckingAuth ? (
           <PrinterLoader />
         ) : !isAuthenticated ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px', background: 'var(--bg-app)' }}>
-            <div className="biz-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 32px', position: 'relative' }}>
+          <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', width: '100vw', padding: '24px', background: 'var(--bg-app)', boxSizing: 'border-box' }}>
+            <div className="biz-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 32px', position: 'relative', margin: 'auto' }}>
               {/* Theme Toggle Button */}
               <button
                 type="button"
