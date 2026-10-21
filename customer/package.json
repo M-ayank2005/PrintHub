@@ -12,6 +12,7 @@
     "@printhub/shared": "workspace:*",
     "canvas-confetti": "^1.9.3",
     "idb-keyval": "^6.2.1",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.453.0",
     "next": "^14.2.15",
     "pdf-lib": "^1.17.1",

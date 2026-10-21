@@ -1,11 +1,15 @@
 'use client';
 
-import React from 'react';
-import { QrCode, Printer, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { QrCode, Printer, ShieldCheck, Zap, Camera, Smartphone, ArrowRight, Sparkles } from 'lucide-react';
+import { QrScannerModal } from '../components/QrScannerModal';
 
 export default function HomePage() {
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
   return (
-    <div style={{ textAlign: 'center', paddingTop: '32px' }} className="animate-fade-in">
+    <div style={{ textAlign: 'center', paddingTop: '24px', maxWidth: '480px', margin: '0 auto' }} className="animate-fade-in">
+      {/* Top Brand Icon */}
       <div
         style={{
           width: '76px',
@@ -15,20 +19,97 @@ export default function HomePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          margin: '0 auto 20px auto',
+          margin: '0 auto 18px auto',
           boxShadow: '0 12px 30px rgba(79, 70, 229, 0.35)',
         }}
       >
         <Printer size={38} color="#ffffff" />
       </div>
 
+      {/* Main Title & Subtitle */}
       <h1 style={{ fontSize: '1.85rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '8px', color: '#0f172a' }}>
         PrintHub Express
       </h1>
-      <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '28px' }}>
-        Instant, silent document printing for print cafes. Scan the counter QR standee to get started in seconds.
+      <p style={{ color: '#475569', fontSize: '0.94rem', lineHeight: '1.5', marginBottom: '24px' }}>
+        Instant, silent document printing for print cafes. Connect to your local print shop in seconds.
       </p>
 
+      {/* Primary Interactive Scanner Card */}
+      <div
+        className="glass-panel"
+        style={{
+          padding: '24px 20px',
+          textAlign: 'center',
+          marginBottom: '22px',
+          border: '2px solid #818cf8',
+          background: '#ffffff',
+          boxShadow: '0 12px 35px -8px rgba(99, 102, 241, 0.22)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}>
+          <span
+            style={{
+              fontSize: '0.74rem',
+              fontWeight: 800,
+              padding: '3px 10px',
+              borderRadius: '20px',
+              background: '#e0e7ff',
+              color: '#4338ca',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Ready at the shop counter?
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsScannerOpen(true)}
+          className="btn-primary"
+          style={{
+            width: '100%',
+            padding: '16px 20px',
+            fontSize: '1.05rem',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.35)',
+            cursor: 'pointer',
+          }}
+        >
+          <Camera size={22} />
+          <span>Scan Counter QR Code</span>
+        </button>
+
+        <p style={{ color: '#64748b', fontSize: '0.82rem', marginTop: '12px', lineHeight: 1.45 }}>
+          Point your camera at the shop standee to start uploading your documents immediately.
+        </p>
+
+        {/* Dual Method Clarification */}
+        <div
+          style={{
+            marginTop: '16px',
+            paddingTop: '14px',
+            borderTop: '1px dashed #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontSize: '0.78rem',
+            color: '#475569',
+          }}
+        >
+          <Smartphone size={16} color="#4f46e5" />
+          <span>
+            Works with <strong>Google Lens</strong>, your phone&apos;s camera app, or this web scanner.
+          </span>
+        </div>
+      </div>
+
+      {/* How it works Card */}
       <div className="glass-panel" style={{ padding: '24px 22px', textAlign: 'left', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a' }}>
           <Zap size={20} color="#4f46e5" />
@@ -42,12 +123,16 @@ export default function HomePage() {
         </ol>
       </div>
 
+      {/* Zero-Trace Security Guarantee Card */}
       <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', background: '#ecfdf5', borderColor: '#a7f3d0' }}>
         <ShieldCheck size={26} color="#059669" style={{ flexShrink: 0 }} />
         <span style={{ fontSize: '0.82rem', color: '#065f46', lineHeight: 1.45 }}>
-          <strong>Zero-Trace Guarantee:</strong> Files are encrypted in transit and automatically destroyed within 30 seconds of print completion.
+          <strong>Zero-Trace Guarantee:</strong> Files are encrypted in transit and automatically destroyed from storage within 30 seconds of print completion.
         </span>
       </div>
+
+      {/* Fullscreen Interactive QR Scanner Modal */}
+      <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
     </div>
   );
 }

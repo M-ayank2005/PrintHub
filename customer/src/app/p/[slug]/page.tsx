@@ -6,8 +6,9 @@ import { Header } from '../../../components/Header';
 import { useCustomerStore } from '../../../lib/store';
 import { translations } from '../../../lib/i18n';
 import { fetchShop, createSession } from '../../../lib/api';
-import { ArrowRight, FileText, CheckCircle2, AlertCircle, ShieldAlert, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, FileText, CheckCircle2, AlertCircle, ShieldAlert, Sparkles, Zap, ShieldCheck, Camera } from 'lucide-react';
 import Link from 'next/link';
+import { QrScannerModal } from '../../../components/QrScannerModal';
 
 export default function ShopLandingPage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function ShopLandingPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -71,6 +73,34 @@ export default function ShopLandingPage() {
         <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px' }}>
           {error || 'This QR code is either invalid or expired.'}
         </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setIsScannerOpen(true)}
+            className="btn-primary"
+            style={{ width: '100%', padding: '14px 20px', borderRadius: '14px', fontSize: '0.92rem' }}
+          >
+            <Camera size={18} />
+            <span>Scan Another QR Code</span>
+          </button>
+
+          <Link
+            href="/"
+            style={{
+              display: 'inline-block',
+              fontSize: '0.85rem',
+              color: '#4f46e5',
+              fontWeight: 700,
+              textDecoration: 'none',
+              marginTop: '6px',
+            }}
+          >
+            ← Back to Homepage
+          </Link>
+        </div>
+
+        <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
       </div>
     );
   }
