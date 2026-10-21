@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 
 jobs:
   build-tauri:
@@ -42,13 +48,14 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.yourdomain.com' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://printhub-hltn.onrender.com' }}
+          NEXT_PUBLIC_CUSTOMER_URL: ${{ secrets.NEXT_PUBLIC_CUSTOMER_URL || 'https://print-hub-mauve.vercel.app' }}
         with:
           projectPath: business
-          tagName: ${{ github.ref_name }}
-          releaseName: 'PrintHub Business ${{ github.ref_name }}'
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }}
+          releaseName: 'PrintHub Business ${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }}'
           releaseBody: |
-            PrintHub Business Shop Terminal Desktop Application (${{ github.ref_name }})
+            PrintHub Business Shop Terminal Desktop Application (${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v1.0.0' }})
 
             > [!NOTE]
             > Unsigned NSIS installers may trigger a Microsoft Defender SmartScreen prompt on first launch ("Windows protected your PC"). Click "More info" and select "Run anyway".
