@@ -49,7 +49,13 @@ export default function JobStatusPage() {
   const [isCancelSheetOpen, setIsCancelSheetOpen] = useState(false);
 
   useEffect(() => {
-    if (!jobId || !sessionToken) return;
+    if (!jobId) return;
+
+    if (!sessionToken) {
+      setError('Session expired or not found. Please scan the counter QR code to view your orders.');
+      setLoading(false);
+      return;
+    }
 
     let isMounted = true;
 
