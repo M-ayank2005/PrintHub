@@ -10,12 +10,31 @@ export function setAuthToken(token: string): void {
   localStorage.setItem('printhub_biz_token', token);
 }
 
+export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('printhub_biz_refresh');
+}
+
+export function setRefreshToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('printhub_biz_refresh', token);
+}
+
 export function removeAuthToken(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('printhub_biz_token');
+  localStorage.removeItem('printhub_biz_refresh');
 }
 
-async function request(path: string, options: RequestInit = {}): Promise<any> {
+let isRefreshing = false;
+let refreshSubscribers: ((token: string | null) => void)[] = [];
+
+function onRefreshed(token: string | null) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
+async function request(path: string, options: RequestInit = {}, isRetry = false): Promise<any> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -30,6 +49,55 @@ async function request(path: string, options: RequestInit = {}): Promise<any> {
     ...options,
     headers,
   });
+
+  if (res.status === 401 && !isRetry && !path.startsWith('/auth/')) {
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+          });
+
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            if (data?.tokens?.accessToken) {
+              setAuthToken(data.tokens.accessToken);
+              if (data.tokens.refreshToken) {
+                setRefreshToken(data.tokens.refreshToken);
+              }
+              onRefreshed(data.tokens.accessToken);
+              isRefreshing = false;
+              // Retry original request
+              return request(path, options, true);
+            }
+          }
+          // Refresh failed
+          onRefreshed(null);
+          removeAuthToken();
+        } catch (err) {
+          onRefreshed(null);
+          removeAuthToken();
+        } finally {
+          isRefreshing = false;
+        }
+      } else {
+        // Queue request until refresh finishes
+        return new Promise((resolve, reject) => {
+          refreshSubscribers.push((newToken) => {
+            if (newToken) {
+              resolve(request(path, options, true));
+            } else {
+              reject(new Error('Session expired. Please log in again.'));
+            }
+          });
+        });
+      }
+    }
+  }
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -46,7 +114,12 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password, deviceId }),
     });
-    setAuthToken(data.tokens.accessToken);
+    if (data?.tokens?.accessToken) {
+      setAuthToken(data.tokens.accessToken);
+    }
+    if (data?.tokens?.refreshToken) {
+      setRefreshToken(data.tokens.refreshToken);
+    }
     return data;
   },
 
@@ -55,11 +128,27 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password, shopName, deviceId }),
     });
-    setAuthToken(data.tokens.accessToken);
+    if (data?.tokens?.accessToken) {
+      setAuthToken(data.tokens.accessToken);
+    }
+    if (data?.tokens?.refreshToken) {
+      setRefreshToken(data.tokens.refreshToken);
+    }
     return data;
   },
 
-  logout: () => {
+  logout: async () => {
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      try {
+        await request('/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ refreshToken }),
+        });
+      } catch (e) {
+        // ignore logout errors
+      }
+    }
     removeAuthToken();
   },
 

@@ -24,8 +24,32 @@ export default function PrintersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.getSystemPrinters();
-      const list = res.printers || [];
+      let list: any[] = [];
+      if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+        try {
+          const { invoke } = await import('@tauri-apps/api/core');
+          const tauriPrinters = await invoke<any[]>('get_system_printers');
+          if (tauriPrinters && tauriPrinters.length > 0) {
+            list = tauriPrinters.map((p) => ({
+              name: p.name,
+              isDefault: !!p.is_default,
+              isOnline: p.is_online ?? true,
+              isColor: p.is_color ?? true,
+              isDuplex: p.is_duplex ?? true,
+              paperSizes: p.paper_sizes || ['A4'],
+              isVirtual: /pdf|xps|onenote|fax|writer/i.test(p.name),
+            }));
+          }
+        } catch (e) {
+          console.warn('Tauri printer query failed, falling back to API:', e);
+        }
+      }
+
+      if (list.length === 0) {
+        const res = await api.getSystemPrinters();
+        list = res.printers || [];
+      }
+
       setPrinters(list);
       setLastScanned(new Date());
 
@@ -52,10 +76,6 @@ export default function PrintersPage() {
   const handleSetDefault = (name: string) => {
     setSelectedPrinter(name);
   };
-
-  const physicalPrinters = printers.filter((p) => !p.isVirtual);
-  const virtualPrinters = printers.filter((p) => p.isVirtual);
-  const hasNoPhysical = physicalPrinters.length === 0;
 
   return (
     <div>
@@ -103,31 +123,42 @@ export default function PrintersPage() {
         </div>
       )}
 
-      {/* Real Hardware Notice Banner */}
-      {!isLoading && hasNoPhysical && (
+      {/* Information Banner */}
+      {!isLoading && (
         <div
           style={{
-            padding: '16px 20px',
-            background: 'rgba(245, 158, 11, 0.08)',
-            border: '1px solid rgba(245, 158, 11, 0.25)',
+            padding: '14px 18px',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.22)',
             borderRadius: '12px',
-            marginBottom: '24px',
+            marginBottom: '20px',
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '14px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
           }}
         >
-          <AlertTriangle size={22} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <strong style={{ color: '#fbbf24', fontSize: '0.95rem', display: 'block', marginBottom: '2px' }}>
-              No External Hardware Printers Connected Currently
-            </strong>
-            <p style={{ color: '#cbd5e1', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
-              PrintHub scanned your Windows operating system and found no physical USB or Network printers plugged in.
-              Only Windows virtual software printers (e.g. PDF/OneNote) were detected.
-              Plug in your shop printer via USB or connect to your local Wi-Fi printer, then click <strong>&quot;Scan for Printers&quot;</strong>.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Printer size={18} color="#818cf8" style={{ flexShrink: 0 }} />
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.86rem' }}>
+              Select any printer (including virtual printers like <strong>Microsoft Print to PDF</strong> for testing) as your target default printer.
+            </span>
           </div>
+          {selectedPrinter && (
+            <span
+              style={{
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                color: '#10b981',
+                whiteSpace: 'nowrap',
+                background: 'rgba(16, 185, 129, 0.12)',
+                padding: '4px 10px',
+                borderRadius: '8px',
+              }}
+            >
+              Default: {selectedPrinter}
+            </span>
+          )}
         </div>
       )}
 

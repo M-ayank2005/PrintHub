@@ -3,14 +3,45 @@
 import React, { useState } from 'react';
 import { useBusinessStore } from '../../lib/store';
 import { api } from '../../lib/api';
-import { Inbox, Printer, Ban, PauseCircle, PlayCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Inbox, Printer, Ban, PauseCircle, PlayCircle, CheckCircle2, Clock, RefreshCw } from 'lucide-react';
 
 export default function RequestsPage() {
-  const { pendingJobs, updateJob, business, setBusiness } = useBusinessStore();
+  const { pendingJobs, setPendingJobs, updateJob, business, setBusiness } = useBusinessStore();
   const [busyState, setBusyState] = useState<string | null>(null);
-
+  const [isFetching, setIsFetching] = useState(false);
   const [isTogglingPause, setIsTogglingPause] = useState(false);
   const [toggleFeedback, setToggleFeedback] = useState<string | null>(null);
+
+  const fetchPendingJobs = async () => {
+    setIsFetching(true);
+    try {
+      const res = await api.getJobs('SUBMITTED');
+      if (res?.jobs) {
+        setPendingJobs(
+          res.jobs.map((j: any) => ({
+            id: (j.id || j._id)?.toString(),
+            code: j.code,
+            customerName: j.customerName,
+            paymentMode: j.paymentMode,
+            paymentState: j.paymentState,
+            totals: j.totals,
+            docsCount: j.docsCount || j.docs?.length || 0,
+            createdAt: j.createdAt,
+            expiresAt: j.expiresAt,
+            status: j.status || 'SUBMITTED',
+          }))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to load pending jobs:', err);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchPendingJobs();
+  }, []);
 
   // Ensure business profile is loaded even on direct page visit
   React.useEffect(() => {
@@ -104,8 +135,20 @@ export default function RequestsPage() {
           </p>
         </div>
 
-        {/* Small Toggle Switch */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Header Controls: Refresh and Pause Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={fetchPendingJobs}
+            disabled={isFetching}
+            className="biz-btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', fontSize: '0.84rem' }}
+            title="Refresh pending requests list"
+          >
+            <RefreshCw size={15} style={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }} />
+            {isFetching ? 'Refreshing...' : 'Refresh'}
+          </button>
+
           <button
             type="button"
             onClick={handleTogglePause}

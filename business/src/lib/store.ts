@@ -13,6 +13,7 @@ export interface BusinessStoreState {
   setBusiness: (biz: any) => void;
   setConnected: (val: boolean) => void;
   setPrinters: (list: any[]) => void;
+  setPendingJobs: (jobs: any[]) => void;
   setSelectedPrinter: (name: string) => void;
   toggleDND: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
@@ -30,12 +31,19 @@ const getInitialTheme = (): 'dark' | 'light' => {
   return 'dark';
 };
 
+const getInitialPrinter = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('printhub_selected_printer');
+  }
+  return null;
+};
+
 export const useBusinessStore = create<BusinessStoreState>((set) => ({
   business: null,
   pendingJobs: [],
   toastJobs: [],
   printers: [],
-  selectedPrinter: null,
+  selectedPrinter: getInitialPrinter(),
   isDND: false,
   isConnected: false,
   theme: getInitialTheme(),
@@ -43,7 +51,13 @@ export const useBusinessStore = create<BusinessStoreState>((set) => ({
   setBusiness: (business) => set({ business }),
   setConnected: (isConnected) => set({ isConnected }),
   setPrinters: (printers) => set({ printers }),
-  setSelectedPrinter: (selectedPrinter) => set({ selectedPrinter }),
+  setPendingJobs: (pendingJobs) => set({ pendingJobs }),
+  setSelectedPrinter: (selectedPrinter) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_selected_printer', selectedPrinter);
+    }
+    set({ selectedPrinter });
+  },
   toggleDND: () => set((state) => ({ isDND: !state.isDND })),
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {

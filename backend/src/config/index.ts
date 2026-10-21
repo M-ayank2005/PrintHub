@@ -95,8 +95,8 @@ export const config = {
         (process.env.NODE_ENV === 'test' ? 'test_jwt_session_secret_32_characters_long!' : '')
       );
     },
-    accessTtlSec: 15 * 60, // 15 mins
-    refreshTtlSec: 30 * 24 * 60 * 60, // 30 days
+    accessTtlSec: 90 * 24 * 60 * 60, // 90 days
+    refreshTtlSec: 365 * 24 * 60 * 60, // 365 days
     sessionTtlSec: 30 * 60, // 30 mins
   },
   cors: {

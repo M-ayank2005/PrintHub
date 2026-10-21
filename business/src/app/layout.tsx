@@ -10,13 +10,14 @@ import { useBusinessStore } from '../lib/store';
 import { api, getAuthToken, removeAuthToken } from '../lib/api';
 import { getOrCreateDeviceId, getDeviceName } from '../lib/device';
 import { Printer, Sun, Moon } from 'lucide-react';
+import { showNativeNotification } from '../lib/notify';
 
 export default function BusinessLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { setBusiness, setConnected, addJob, updateJob, isDND, theme, setTheme, toggleTheme } = useBusinessStore();
+  const { setBusiness, setConnected, addJob, setPendingJobs, updateJob, isDND, theme, setTheme, toggleTheme } = useBusinessStore();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -25,6 +26,30 @@ export default function BusinessLayout({
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const loadPendingJobs = async () => {
+    try {
+      const res = await api.getJobs('SUBMITTED');
+      if (res?.jobs) {
+        setPendingJobs(
+          res.jobs.map((j: any) => ({
+            id: (j.id || j._id)?.toString(),
+            code: j.code,
+            customerName: j.customerName,
+            paymentMode: j.paymentMode,
+            paymentState: j.paymentState,
+            totals: j.totals,
+            docsCount: j.docsCount || j.docs?.length || 0,
+            createdAt: j.createdAt,
+            expiresAt: j.expiresAt,
+            status: j.status || 'SUBMITTED',
+          }))
+        );
+      }
+    } catch (e) {
+      console.warn('Initial pending jobs load failed:', e);
+    }
+  };
 
   useEffect(() => {
     // Restore saved theme
@@ -44,6 +69,7 @@ export default function BusinessLayout({
           setIsAuthenticated(true);
           const agentInfo = await registerBusinessAgent();
           setupSocket(agentInfo?.deviceId, agentInfo?.printerCaps);
+          loadPendingJobs();
         })
         .catch((err) => {
           console.warn('Session verification failed, logging out:', err);
@@ -128,6 +154,11 @@ export default function BusinessLayout({
     initBusinessSocket(
       (job) => {
         addJob(job);
+        // Show native Windows Toast Notification & Notification Center entry
+        showNativeNotification(
+          `PrintHub: New Request #${job.code || ''}`,
+          `${job.customerName || 'Customer'} • ${job.totals?.pages || 1} pages (${job.totals?.sheets || 1} sheets) • ₹${((job.totals?.pricePaise || 0) / 100).toFixed(2)}`
+        );
         // Play gentle audio chime if not DND
         if (!isDND && typeof window !== 'undefined' && window.AudioContext) {
           try {
@@ -186,6 +217,7 @@ export default function BusinessLayout({
       await fetchProfile();
       const agentInfo = await registerBusinessAgent();
       setupSocket(agentInfo?.deviceId, agentInfo?.printerCaps);
+      loadPendingJobs();
     } catch (err: any) {
       setAuthError(err.message || (authMode === 'signup' ? 'Registration failed' : 'Login failed'));
     } finally {

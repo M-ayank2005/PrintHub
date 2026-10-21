@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '../lib/api';
 import { useBusinessStore } from '../lib/store';
 import { DollarSign, FileText, CheckCircle2, Download, Printer, TrendingUp, Layers } from 'lucide-react';
@@ -212,14 +213,24 @@ export default function DashboardPage() {
                     {new Date(j.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td style={{ padding: '12px 14px' }}>
-                    {j.paymentState !== 'PAID_CONFIRMED' && (
-                      <button
-                        onClick={() => handleMarkPaid(j._id)}
-                        className="biz-btn-secondary"
-                        style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                    {j.status === 'SUBMITTED' ? (
+                      <Link
+                        href="/requests"
+                        className="biz-btn-primary"
+                        style={{ padding: '5px 12px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        Mark Paid
-                      </button>
+                        Accept / Reject
+                      </Link>
+                    ) : (
+                      j.paymentState !== 'PAID_CONFIRMED' && (
+                        <button
+                          onClick={() => handleMarkPaid(j._id)}
+                          className="biz-btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                        >
+                          Mark Paid
+                        </button>
+                      )
                     )}
                   </td>
                 </tr>
